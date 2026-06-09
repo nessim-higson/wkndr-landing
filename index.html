@@ -149,11 +149,6 @@ h1 .swap{ color:var(--accent); }
 
 /* hero gallery — Maneken-style auto-scrolling rows of pick cards */
 .gallery{ margin-top:clamp(54px,8vw,90px); position:relative; z-index:2; }
-.gallery::before, .gallery::after{
-  content:""; position:absolute; top:0; bottom:0; width:5vw; z-index:3; pointer-events:none;
-}
-.gallery::before{ left:0;  background:linear-gradient(90deg, var(--paper) 30%, transparent); }
-.gallery::after{  right:0; background:linear-gradient(270deg, var(--paper) 30%, transparent); }
 .row{ display:flex; gap:18px; width:max-content; margin-bottom:18px; }
 .row.r1{ animation:scrollL 56s linear infinite; }
 .row.r2{ animation:scrollR 64s linear infinite; }
@@ -602,7 +597,7 @@ footer{ padding:80px 0 50px; }
       </div>
     </div>
     <div class="foot-bottom">
-      <div class="made">Made in Amsterdam · © 2026 WKNDR</div>
+      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.2</span></div>
       <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
     </div>
   </div>
