@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="HOT">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WKNDR — your weekend, sorted by the weather</title>
+<style>
+/* ============================================================
+   WKNDR landing — Maneken-style layout, WKNDR brand tokens
+   ============================================================ */
+:root{
+  --ink:    #0e0e0c;
+  --ink-2:  #54534d;
+  --ink-3:  #8b8a82;
+  --paper:  #faf8f3;       /* warm muji off-white */
+  --card:   #ffffff;
+  --line:   #e7e3d8;
+  --accent: #ff4d1f;       /* energetic orange-red */
+  --radius: 22px;
+  --radius-lg: 30px;
+
+  /* live weather-field palette (set by JS, default HOT) */
+  --field-1: #ff9a3d;
+  --field-2: #c2310e;
+  --field-3: #5a1606;
+  --field-glow: #ffd166;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; -webkit-font-smoothing:antialiased; }
+body{
+  font-family:"Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.45;
+  overflow-x:hidden;
+}
+a{ color:inherit; text-decoration:none; }
+.mono{ font-family:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+
+/* ---------- shared ---------- */
+.wrap{ width:min(1180px, 92vw); margin:0 auto; }
+.eyebrow{
+  font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3);
+  display:inline-flex; align-items:center; gap:8px;
+}
+.eyebrow::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); }
+h2.section-title{
+  font-size:clamp(34px, 5.2vw, 60px);
+  font-weight:700; letter-spacing:-.035em; line-height:1.02;
+  margin:18px 0 0;
+}
+.section-sub{ font-size:clamp(16px,1.4vw,19px); color:var(--ink-2); max-width:54ch; margin-top:16px; }
+section{ padding:clamp(72px, 11vw, 140px) 0; position:relative; }
+
+/* buttons */
+.btn{
+  display:inline-flex; align-items:center; gap:9px; cursor:pointer; border:none;
+  font-size:15px; font-weight:600; letter-spacing:-.01em;
+  padding:14px 24px; border-radius:100px; transition:transform .18s ease, background .2s ease, box-shadow .2s ease;
+}
+.btn:active{ transform:translateY(1px) scale(.99); }
+.btn-accent{ background:var(--accent); color:#fff; box-shadow:0 8px 22px -10px rgba(255,77,31,.8); }
+.btn-accent:hover{ transform:translateY(-2px); box-shadow:0 14px 30px -12px rgba(255,77,31,.85); }
+.btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+.btn-ghost:hover{ border-color:var(--ink); transform:translateY(-2px); }
+.btn-dark{ background:var(--ink); color:var(--paper); }
+.btn-dark:hover{ transform:translateY(-2px); }
+
+/* ============================================================
+   NAV — floating pill
+   ============================================================ */
+.nav-spacer{ height:96px; }
+nav{
+  position:fixed; top:18px; left:0; right:0; z-index:100;
+  display:flex; justify-content:center; pointer-events:none;
+}
+.nav-pill{
+  pointer-events:auto;
+  width:min(1180px, 92vw);
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:saturate(180%) blur(18px);
+  -webkit-backdrop-filter:saturate(180%) blur(18px);
+  border:1px solid rgba(231,227,216,.9);
+  border-radius:100px;
+  padding:11px 12px 11px 22px;
+  box-shadow:0 10px 30px -16px rgba(0,0,0,.25);
+}
+.brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; letter-spacing:-.04em; }
+.brand .dot{
+  width:13px; height:13px; border-radius:50%;
+  background:conic-gradient(from 200deg, var(--field-1), var(--field-glow), var(--field-2), var(--field-1));
+  box-shadow:0 0 0 3px rgba(255,255,255,.6), 0 0 14px -2px var(--field-glow);
+  transition:background .8s ease;
+}
+.nav-links{ display:flex; gap:30px; font-size:14.5px; font-weight:500; color:var(--ink-2); }
+.nav-links a{ transition:color .15s ease; }
+.nav-links a:hover{ color:var(--ink); }
+.nav-cta{ display:flex; align-items:center; gap:10px; }
+@media (max-width:860px){ .nav-links{ display:none; } }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{ padding-top:clamp(40px,7vw,80px); padding-bottom:0; text-align:center; position:relative; }
+/* the live ambient weather field, soft, behind hero text */
+.hero-field{
+  position:absolute; inset:-10% 0 auto; height:680px; z-index:0; pointer-events:none;
+  filter:blur(8px); opacity:.55;
+  -webkit-mask-image:radial-gradient(120% 70% at 50% 22%, #000 35%, transparent 75%);
+  mask-image:radial-gradient(120% 70% at 50% 22%, #000 35%, transparent 75%);
+}
+.hero-field .blob{ position:absolute; border-radius:50%; mix-blend-mode:multiply; transition:background 1s ease; will-change:transform; }
+.hero-field .b1{ width:46vw; height:46vw; left:8%;  top:-6%;  background:radial-gradient(circle at 50% 50%, var(--field-1), transparent 62%); animation:drift1 19s ease-in-out infinite; }
+.hero-field .b2{ width:42vw; height:42vw; right:6%; top:2%;   background:radial-gradient(circle at 50% 50%, var(--field-2), transparent 62%); animation:drift2 23s ease-in-out infinite; }
+.hero-field .b3{ width:38vw; height:38vw; left:34%; top:14%;  background:radial-gradient(circle at 50% 50%, var(--field-glow), transparent 60%); animation:drift3 27s ease-in-out infinite; }
+@keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(6%,5%) scale(1.12); } }
+@keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1.05); } 50%{ transform:translate(-7%,4%) scale(.92); } }
+@keyframes drift3{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(3%,-6%) scale(1.1); } }
+
+.hero-inner{ position:relative; z-index:2; }
+.weather-chip{
+  display:inline-flex; align-items:center; gap:11px;
+  background:var(--card); border:1px solid var(--line); border-radius:100px;
+  padding:8px 8px 8px 16px; font-size:13.5px; font-weight:600; margin-bottom:30px;
+  box-shadow:0 6px 18px -12px rgba(0,0,0,.3);
+}
+.weather-chip .glyph{ font-size:16px; }
+.weather-chip .mode-tag{
+  font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:#fff; padding:5px 11px; border-radius:100px;
+  background:linear-gradient(120deg, var(--field-2), var(--field-1));
+  transition:background .8s ease;
+}
+h1.hero-title{
+  font-size:clamp(42px, 7.4vw, 92px);
+  font-weight:700; letter-spacing:-.045em; line-height:.98;
+  max-width:16ch; margin:0 auto;
+}
+h1 .swap{ color:var(--accent); }
+.hero-sub{
+  font-size:clamp(17px, 1.7vw, 21px); color:var(--ink-2);
+  max-width:50ch; margin:26px auto 0; line-height:1.5;
+}
+.hero-actions{ display:flex; gap:14px; justify-content:center; margin-top:34px; flex-wrap:wrap; }
+.hero-note{ margin-top:18px; font-size:13px; color:var(--ink-3); }
+
+/* hero gallery — Maneken-style auto-scrolling rows of pick cards */
+.gallery{ margin-top:clamp(54px,8vw,90px); position:relative; z-index:2; }
+.gallery::before, .gallery::after{
+  content:""; position:absolute; top:0; bottom:0; width:14vw; z-index:3; pointer-events:none;
+}
+.gallery::before{ left:0;  background:linear-gradient(90deg, var(--paper), transparent); }
+.gallery::after{  right:0; background:linear-gradient(270deg, var(--paper), transparent); }
+.row{ display:flex; gap:18px; width:max-content; margin-bottom:18px; }
+.row.r1{ animation:scrollL 56s linear infinite; }
+.row.r2{ animation:scrollR 64s linear infinite; }
+.row.r3{ animation:scrollL 72s linear infinite; }
+@keyframes scrollL{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+@keyframes scrollR{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
+.gallery:hover .row{ animation-play-state:paused; }
+
+.pick{
+  width:280px; flex:0 0 auto; background:var(--card); border-radius:var(--radius);
+  border:1px solid var(--line); overflow:hidden;
+  box-shadow:0 18px 40px -28px rgba(0,0,0,.4);
+  transition:transform .25s ease;
+}
+.pick:hover{ transform:translateY(-6px); }
+.pick .cover{ height:172px; position:relative; overflow:hidden; }
+.pick .cover .g{ position:absolute; inset:0; }
+.pick .fitpill{
+  position:absolute; top:12px; left:12px; z-index:2;
+  font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  background:rgba(255,255,255,.92); color:var(--ink); padding:5px 10px; border-radius:100px;
+  backdrop-filter:blur(4px);
+}
+.pick .meta{ padding:15px 16px 17px; }
+.pick .ptitle{ font-size:16.5px; font-weight:700; letter-spacing:-.02em; line-height:1.18; }
+.pick .psrc{ margin-top:9px; font-size:11.5px; color:var(--ink-3); display:flex; align-items:center; gap:7px; }
+.pick .psrc .src{ color:var(--ink-2); font-weight:600; }
+
+/* ============================================================
+   LOGO STRIP / source trace
+   ============================================================ */
+.sources{ padding:46px 0 6px; text-align:center; }
+.sources .lbl{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
+.sources .strip{
+  margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:14px 40px;
+  font-size:17px; font-weight:600; color:var(--ink-2); opacity:.72; letter-spacing:-.01em;
+}
+
+/* ============================================================
+   HOW IT WORKS — 3 steps
+   ============================================================ */
+.steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:56px; }
+.step{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:30px 28px 32px; position:relative; overflow:hidden;
+}
+.step .num{
+  font-size:13px; font-weight:700; letter-spacing:.1em;
+  color:var(--accent); margin-bottom:46px; display:block;
+}
+.step .ico{
+  position:absolute; top:26px; right:26px; width:46px; height:46px; border-radius:14px;
+  display:grid; place-items:center; font-size:22px;
+  background:var(--paper); border:1px solid var(--line);
+}
+.step h3{ font-size:22px; font-weight:700; letter-spacing:-.025em; }
+.step p{ margin-top:11px; color:var(--ink-2); font-size:15.5px; }
+@media (max-width:820px){ .steps{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   WEATHER MODES — five skies
+   ============================================================ */
+.modes{ background:var(--ink); color:var(--paper); border-radius:clamp(28px,4vw,46px); margin:0 auto; }
+.modes .wrap{ padding:clamp(64px,9vw,110px) clamp(28px,5vw,70px); }
+.modes .eyebrow{ color:#a9a79c; }
+.modes h2.section-title{ color:var(--paper); }
+.modes .section-sub{ color:#b6b4a9; }
+.mode-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-top:50px; }
+.mode-card{
+  border-radius:20px; overflow:hidden; min-height:260px; position:relative;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:20px; cursor:pointer; transition:transform .25s ease;
+  border:1px solid rgba(255,255,255,.08);
+}
+.mode-card:hover{ transform:translateY(-6px); }
+.mode-card .swatch{ position:absolute; inset:0; z-index:0; transition:filter .3s ease; }
+.mode-card:hover .swatch{ filter:saturate(1.15) brightness(1.05); }
+.mode-card .body{ position:relative; z-index:1; }
+.mode-card .mlabel{ font-size:19px; font-weight:700; letter-spacing:-.02em; }
+.mode-card .mcond{ font-size:10.5px; letter-spacing:.06em; margin-top:6px; opacity:.85; }
+.mode-card .mphrase{ font-size:13px; line-height:1.4; margin-top:12px; opacity:.92; }
+@media (max-width:900px){ .mode-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:520px){ .mode-grid{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   SWIPE DEMO — phone with card deck
+   ============================================================ */
+.demo{ display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:center; }
+.phone{
+  width:300px; height:610px; margin:0 auto; position:relative;
+  background:#111; border-radius:46px; padding:13px;
+  box-shadow:0 50px 90px -50px rgba(0,0,0,.7), inset 0 0 0 2px rgba(255,255,255,.06);
+}
+.phone .screen{
+  width:100%; height:100%; border-radius:34px; overflow:hidden; position:relative;
+  background:var(--paper);
+}
+.phone .notch{ position:absolute; top:14px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#111; border-radius:100px; z-index:5; }
+.deck{ position:absolute; inset:0; }
+.swipecard{
+  position:absolute; left:18px; right:18px; top:64px; bottom:104px;
+  border-radius:26px; overflow:hidden; background:var(--card);
+  box-shadow:0 24px 50px -24px rgba(0,0,0,.5); border:1px solid var(--line);
+}
+.swipecard .sc-cover{ height:62%; position:relative; }
+.swipecard .sc-cover .g{ position:absolute; inset:0; }
+.swipecard .sc-fit{
+  position:absolute; top:14px; left:14px; font-size:10px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; background:rgba(255,255,255,.93);
+  padding:5px 10px; border-radius:100px;
+}
+.swipecard .sc-meta{ padding:16px 18px; }
+.swipecard .sc-title{ font-size:21px; font-weight:700; letter-spacing:-.025em; line-height:1.1; }
+.swipecard .sc-src{ margin-top:10px; font-size:12px; color:var(--ink-3); }
+.swipecard.behind1{ transform:scale(.94) translateY(16px); filter:brightness(.97); z-index:1; }
+.swipecard.behind2{ transform:scale(.88) translateY(32px); filter:brightness(.94); z-index:0; }
+.swipecard.front{ z-index:2; animation:swipeCycle 6s ease-in-out infinite; }
+@keyframes swipeCycle{
+  0%,55%{ transform:translateX(0) rotate(0); opacity:1; }
+  70%{ transform:translateX(115%) rotate(13deg); opacity:0; }
+  71%{ transform:translateX(-115%) rotate(-13deg); opacity:0; }
+  85%,100%{ transform:translateX(0) rotate(0); opacity:1; }
+}
+.swipe-badge{
+  position:absolute; top:84px; z-index:6; font-size:13px; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; padding:8px 14px; border-radius:12px; opacity:0;
+}
+.swipe-badge.like{ right:30px; color:#1f9d4f; border:2.5px solid #1f9d4f; transform:rotate(12deg); animation:badgeLike 6s ease-in-out infinite; }
+@keyframes badgeLike{ 0%,55%{opacity:0;} 60%,68%{opacity:1;} 72%,100%{opacity:0;} }
+.dock{ position:absolute; bottom:30px; left:0; right:0; display:flex; justify-content:center; gap:16px; z-index:4; }
+.dock .b{ width:50px; height:50px; border-radius:50%; display:grid; place-items:center; background:var(--card); border:1px solid var(--line); box-shadow:0 8px 18px -10px rgba(0,0,0,.4); font-size:20px; }
+.dock .b.nope{ color:#d23b2a; } .dock .b.like{ color:#1f9d4f; } .dock .b.save{ color:var(--accent); }
+
+.demo-copy .feat{ display:flex; gap:15px; margin-top:26px; }
+.demo-copy .feat .fi{ flex:0 0 auto; width:42px; height:42px; border-radius:12px; background:var(--paper); border:1px solid var(--line); display:grid; place-items:center; font-size:20px; }
+.demo-copy .feat h4{ font-size:17px; font-weight:700; letter-spacing:-.02em; }
+.demo-copy .feat p{ font-size:14.5px; color:var(--ink-2); margin-top:4px; }
+@media (max-width:900px){ .demo{ grid-template-columns:1fr; gap:50px; } }
+
+/* ============================================================
+   CATEGORIES grid
+   ============================================================ */
+.cat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:52px; }
+.cat{
+  background:var(--card); border:1px solid var(--line); border-radius:20px;
+  padding:24px 24px 26px; transition:transform .2s ease, border-color .2s ease;
+}
+.cat:hover{ transform:translateY(-4px); border-color:var(--ink); }
+.cat .cemoji{ font-size:26px; }
+.cat h4{ font-size:18px; font-weight:700; letter-spacing:-.02em; margin-top:16px; }
+.cat p{ font-size:13.5px; color:var(--ink-3); margin-top:5px; }
+@media (max-width:820px){ .cat-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:500px){ .cat-grid{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   VALUE PROPS
+   ============================================================ */
+.values{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:56px; }
+.value{ }
+.value .vnum{ font-size:13px; font-weight:700; color:var(--accent); letter-spacing:.06em; }
+.value h3{ font-size:24px; font-weight:700; letter-spacing:-.03em; margin-top:14px; }
+.value p{ font-size:15.5px; color:var(--ink-2); margin-top:12px; }
+.value .vbar{ height:1px; background:var(--line); margin-top:24px; }
+@media (max-width:820px){ .values{ grid-template-columns:1fr; gap:34px; } }
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq{ max-width:780px; margin:52px auto 0; }
+.qa{ border-top:1px solid var(--line); padding:26px 0; }
+.qa:last-child{ border-bottom:1px solid var(--line); }
+.qa h4{ font-size:19px; font-weight:700; letter-spacing:-.02em; display:flex; justify-content:space-between; gap:20px; align-items:baseline; }
+.qa h4 .q{ flex:1; }
+.qa p{ font-size:15.5px; color:var(--ink-2); margin-top:12px; max-width:64ch; }
+
+/* ============================================================
+   CTA band
+   ============================================================ */
+.cta-band{ text-align:center; }
+.cta-card{
+  background:linear-gradient(135deg, var(--field-2), var(--field-1));
+  border-radius:clamp(28px,4vw,46px); padding:clamp(56px,8vw,96px) 32px;
+  color:#fff; position:relative; overflow:hidden; transition:background 1s ease;
+}
+.cta-card h2{ font-size:clamp(34px,5.5vw,64px); font-weight:700; letter-spacing:-.04em; line-height:1.02; max-width:18ch; margin:0 auto; }
+.cta-card p{ font-size:18px; opacity:.92; margin:20px auto 0; max-width:46ch; }
+.cta-card .btn-light{ background:#fff; color:var(--ink); margin-top:34px; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{ padding:80px 0 50px; }
+.foot-top{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:30px; padding-bottom:46px; border-bottom:1px solid var(--line); }
+.foot-brand .brand{ font-size:24px; }
+.foot-brand p{ margin-top:16px; color:var(--ink-2); font-size:14.5px; max-width:34ch; }
+.foot-col h5{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
+.foot-col a{ display:block; margin-top:13px; font-size:14.5px; color:var(--ink-2); transition:color .15s; }
+.foot-col a:hover{ color:var(--ink); }
+.foot-bottom{ display:flex; justify-content:space-between; align-items:center; padding-top:26px; flex-wrap:wrap; gap:16px; }
+.foot-bottom .made{ font-size:13.5px; color:var(--ink-3); }
+.foot-bottom .legal{ display:flex; gap:22px; font-size:13px; color:var(--ink-3); }
+@media (max-width:820px){ .foot-top{ grid-template-columns:1fr 1fr; } }
+
+@media (prefers-reduced-motion: reduce){
+  .row, .hero-field .blob, .swipecard.front, .swipe-badge{ animation:none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <div class="nav-pill">
+    <a class="brand" href="#top"><span class="dot"></span> WKNDR</a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#weather">Weather</a>
+      <a href="#categories">What's on</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-accent" href="#download">Open WKNDR</a>
+    </div>
+  </div>
+</nav>
+
+<a id="top"></a>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hero-field" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+  </div>
+  <div class="wrap hero-inner">
+    <div class="weather-chip">
+      <span class="glyph" id="wxGlyph">☀</span>
+      <span>Right now in Amsterdam · <strong id="wxTemp">24°</strong></span>
+      <span class="mode-tag" id="wxMode">Hot</span>
+    </div>
+    <h1 class="hero-title">Your weekend, sorted by the <span class="swap">weather</span>.</h1>
+    <p class="hero-sub">WKNDR learns what you love, then re-ranks the whole city for this weekend's sky. Swipe a handful of cards — get a plan that actually fits the day.</p>
+    <div class="hero-actions">
+      <a class="btn btn-accent" href="#download">Start swiping — it's free</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
+    </div>
+    <p class="hero-note">Free to use · Amsterdam · no account to start</p>
+  </div>
+
+  <!-- gallery of weather-tinted pick cards -->
+  <div class="gallery wrap" aria-hidden="true">
+    <div class="row r1" id="row1"></div>
+    <div class="row r2" id="row2"></div>
+    <div class="row r3" id="row3"></div>
+  </div>
+</header>
+
+<!-- ============ SOURCE TRACE STRIP ============ -->
+<div class="sources">
+  <div class="wrap">
+    <div class="lbl">Reads the whole city, names its sources</div>
+    <div class="strip">
+      <span>Buienradar</span><span>Resident Advisor</span><span>I amsterdam</span>
+      <span>Paradiso</span><span>Time Out</span><span>Songkick</span>
+      <span>Kidsproof</span><span>Little Black Book</span><span>KNMI</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how">
+  <div class="wrap">
+    <span class="eyebrow">How it works</span>
+    <h2 class="section-title">Three swipes from a real plan.</h2>
+    <p class="section-sub">No infinite feed, no doom-scroll. You teach it your taste once, the weather does the ranking, and your weekend assembles itself.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="ico">👆</span>
+        <span class="num">01</span>
+        <h3>Swipe to train your taste</h3>
+        <p>Left, right, up to save, down to skip. A meaty first round teaches WKNDR what you're actually into — every swipe is a signal.</p>
+      </div>
+      <div class="step">
+        <span class="ico">🌤️</span>
+        <span class="num">02</span>
+        <h3>The weather re-ranks it all</h3>
+        <p>Every pick is scored against today's sky. A sunny 24° morning floats the canal swims and terraces; a grey washout surfaces the galleries.</p>
+      </div>
+      <div class="step">
+        <span class="ico">📍</span>
+        <span class="num">03</span>
+        <h3>Save it and go</h3>
+        <p>Your shortlist, weather-proofed and linked straight to the source. Switch between a calm list and a swipe stack whenever you like.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WEATHER MODES ============ -->
+<section id="weather">
+  <div class="wrap">
+    <div class="modes">
+      <div class="wrap">
+        <span class="eyebrow">The weather engine</span>
+        <h2 class="section-title">Five skies. Five weekends.</h2>
+        <p class="section-sub">WKNDR sorts every Amsterdam forecast into five moods — and each one re-paints the app and re-orders your plans.</p>
+        <div class="mode-grid" id="modeGrid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SWIPE DEMO ============ -->
+<section id="demo">
+  <div class="wrap demo">
+    <div class="demo-visual">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="swipe-badge like">Save</div>
+          <div class="deck">
+            <div class="swipecard behind2"><div class="sc-cover"><div class="g" id="dCover3"></div></div></div>
+            <div class="swipecard behind1"><div class="sc-cover"><div class="g" id="dCover2"></div></div></div>
+            <div class="swipecard front">
+              <div class="sc-cover"><div class="g" id="dCover1"></div><div class="sc-fit">Perfect for today</div></div>
+              <div class="sc-meta">
+                <div class="sc-title">Open-air jazz, Vondelpark</div>
+                <div class="sc-src">Sun 14:00 · via I amsterdam</div>
+              </div>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="b nope">✕</div>
+            <div class="b save">★</div>
+            <div class="b like">♥</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-copy">
+      <span class="eyebrow">The swipe is the point</span>
+      <h2 class="section-title">It gets you. Fast.</h2>
+      <p class="section-sub">The more you swipe, the sharper it reads you — and unlike every other events app, the weather is always in the loop.</p>
+      <div class="feat">
+        <div class="fi">↔</div>
+        <div><h4>List ↔ Stack, your call</h4><p>Lean back and swipe a deck, or scan a calm ranked list. Same weather-aware pool, two postures.</p></div>
+      </div>
+      <div class="feat">
+        <div class="fi">🧭</div>
+        <div><h4>Knows what fits</h4><p>A little "why this fits" line on every card — the temperature, the rain odds, the room it's in.</p></div>
+      </div>
+      <div class="feat">
+        <div class="fi">🔁</div>
+        <div><h4>Pivots when the sky does</h4><p>Buienradar flips on you Saturday morning? Your plan quietly re-ranks for the new forecast.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CATEGORIES ============ -->
+<section id="categories">
+  <div class="wrap">
+    <span class="eyebrow">What's on</span>
+    <h2 class="section-title">Nine kinds of weekend.</h2>
+    <p class="section-sub">An ever-refreshing pool across the city — re-ranked by the weather and your taste, never a stale list.</p>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+</section>
+
+<!-- ============ VALUE PROPS ============ -->
+<section id="why">
+  <div class="wrap">
+    <span class="eyebrow">Why it's different</span>
+    <h2 class="section-title">Not another events feed.</h2>
+    <div class="values">
+      <div class="value">
+        <span class="vnum">01</span>
+        <h3>Weather is the lens</h3>
+        <p>Every other app is weather-blind. WKNDR makes the sky the organising idea — so the plan you get is the one that actually works on the day.</p>
+        <div class="vbar"></div>
+      </div>
+      <div class="value">
+        <span class="vnum">02</span>
+        <h3>Trained on your taste</h3>
+        <p>A swipe-trained profile, not a settings screen. It quietly learns whether you're a market-and-coffee person or a basement-techno person.</p>
+        <div class="vbar"></div>
+      </div>
+      <div class="value">
+        <span class="vnum">03</span>
+        <h3>Sources, named &amp; linked</h3>
+        <p>We read the city's best publications, credit each one, and link you straight out. Signal, not a walled garden.</p>
+        <div class="vbar"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <div class="wrap">
+    <span class="eyebrow">FAQ</span>
+    <h2 class="section-title">Good questions.</h2>
+    <div class="faq" id="faqList"></div>
+  </div>
+</section>
+
+<!-- ============ CTA BAND ============ -->
+<section id="download" class="cta-band">
+  <div class="wrap">
+    <div class="cta-card">
+      <h2>Stop guessing your weekend.</h2>
+      <p>Check the sky, swipe a few cards, and go. WKNDR is free, and built for Amsterdam.</p>
+      <a class="btn btn-light" href="#top">Start swiping — it's free</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="brand" href="#top"><span class="dot"></span> WKNDR</a>
+        <p>The weather-aware weekend discovery engine for Amsterdam. Swipe-trained, source-traced, made for the day you've actually got.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Product</h5>
+        <a href="#how">How it works</a>
+        <a href="#weather">Weather engine</a>
+        <a href="#categories">What's on</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="foot-col">
+        <h5>City</h5>
+        <a href="#">Amsterdam</a>
+        <a href="#">Sources</a>
+        <a href="#">This weekend</a>
+        <a href="#">Request a city</a>
+      </div>
+      <div class="foot-col">
+        <h5>Social</h5>
+        <a href="#">Instagram</a>
+        <a href="#">Threads</a>
+        <a href="#">X / Twitter</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div class="made">Made in Amsterdam · © 2026 WKNDR</div>
+      <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Weather-mode data (carried from WKNDR app/src/weather/modes.ts)
+   ============================================================ */
+const MODES = {
+  HOT:      { label:'Hot',        glyph:'☀',  temp:'24°', cond:'HOT · DRY · keep water close',
+              phrase:'Properly hot by two. Chase the shade, keep water close.',
+              c1:'#ff9a3d', c2:'#c2310e', c3:'#5a1606', glow:'#ffd166', text:'#fbf7ef' },
+  WARM:     { label:'Warm',       glyph:'🌤️', temp:'19°', cond:'WARM · DRY · gentle breeze',
+              phrase:'A soft, generous day — choose your own adventure.',
+              c1:'#d8e08a', c2:'#6fa24a', c3:'#2c4a26', glow:'#fff0b0', text:'#1d2a17' },
+  COOL:     { label:'Cool',       glyph:'🍃', temp:'13°', cond:'COOL · CLEAR · crisp air',
+              phrase:'Crisp and clear. Layer up — the whole city is walkable.',
+              c1:'#9fc0b8', c2:'#4a716b', c3:'#1e3433', glow:'#cfe6df', text:'#f4f8f7' },
+  COLD_WET: { label:'Cold & wet', glyph:'🌧️', temp:'7°',  cond:'COLD · WET · an indoor day',
+              phrase:'Grey and wet through the afternoon. An indoor day, well spent.',
+              c1:'#6c7e9c', c2:'#313f5e', c3:'#121a2e', glow:'#9fb2cc', text:'#eef2f7' },
+  VOLATILE: { label:'Volatile',   glyph:'⛅', temp:'16°', cond:'VOLATILE · sun then storms',
+              phrase:"It can't decide. Keep a backup plan and a rain layer in the bag.",
+              c1:'#e08a4a', c2:'#7a5a7a', c3:'#2a3358', glow:'#ffcf8a', text:'#f6f1ee' },
+};
+const ORDER = ['HOT','WARM','COOL','COLD_WET','VOLATILE'];
+
+const cover = (m) => `linear-gradient(150deg, ${m.c1} 0%, ${m.c2} 55%, ${m.c3} 100%)`;
+const coverGlow = (m) => `radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;
+
+/* ---------- pick cards for the hero gallery ---------- */
+const PICKS = [
+  { t:'Canal swim at Marineterrein',   src:'I amsterdam',        fit:'HOT' },
+  { t:'Techno all-nighter, Shelter',   src:'Resident Advisor',   fit:'COLD_WET' },
+  { t:'Open-air jazz, Vondelpark',     src:'I amsterdam',        fit:'WARM' },
+  { t:'Foam late-night photography',   src:'Time Out',           fit:'COLD_WET' },
+  { t:'Pancake boat with the kids',    src:'Kidsproof',          fit:'WARM' },
+  { t:'Sunrise run along the Amstel',  src:'Strava clubs',       fit:'COOL' },
+  { t:'Natural-wine terrace, De Pijp', src:'Little Black Book',  fit:'HOT' },
+  { t:'Paradiso — Sunday session',     src:'Paradiso',           fit:'VOLATILE' },
+  { t:'Noordermarkt + flat white',     src:'Welike Amsterdam',   fit:'COOL' },
+  { t:'Silent boat through the Jordaan',src:'I amsterdam',       fit:'WARM' },
+  { t:'Stedelijk: new wing opening',   src:'Stedelijk',          fit:'COLD_WET' },
+  { t:'Muiderslot medieval days',      src:'Kidsproof',          fit:'WARM' },
+  { t:'Rooftop cinema, NDSM',          src:'Time Out',           fit:'HOT' },
+  { t:'Foraging walk, Amsterdamse Bos',src:'Mommy Poppins',      fit:'COOL' },
+  { t:'Eye Filmmuseum double bill',    src:'Eye',                fit:'VOLATILE' },
+];
+const fitLabel = { HOT:'Best when hot', WARM:'Best when warm', COOL:'Best when cool', COLD_WET:'Best on a wet day', VOLATILE:'Backup-plan ready' };
+
+function pickCard(p){
+  const m = MODES[p.fit];
+  return `<article class="pick">
+    <div class="cover"><div class="g" style="background:${coverGlow(m)}"></div><span class="fitpill">${fitLabel[p.fit]}</span></div>
+    <div class="meta">
+      <div class="ptitle">${p.t}</div>
+      <div class="psrc">via <span class="src">${p.src}</span></div>
+    </div>
+  </article>`;
+}
+// build 3 rows, duplicated for seamless marquee loop
+function fillRow(id, items){
+  const html = items.map(pickCard).join('');
+  document.getElementById(id).innerHTML = html + html;
+}
+const shuffled = [...PICKS];
+fillRow('row1', shuffled.slice(0,5));
+fillRow('row2', shuffled.slice(5,10));
+fillRow('row3', shuffled.slice(10,15));
+
+/* ---------- weather mode cards ---------- */
+document.getElementById('modeGrid').innerHTML = ORDER.map(k=>{
+  const m = MODES[k];
+  const dark = (m.text.charCodeAt(1) < 0x39); // rough: dark text for light palettes
+  return `<div class="mode-card" data-mode="${k}" style="color:${m.text}">
+    <div class="swatch" style="background:${coverGlow(m)}"></div>
+    <div class="body">
+      <div class="mlabel">${m.glyph} ${m.label}</div>
+      <div class="mcond mono">${m.cond}</div>
+      <div class="mphrase">${m.phrase}</div>
+    </div>
+  </div>`;
+}).join('');
+// clicking a mode card previews that weather across the whole page
+document.querySelectorAll('.mode-card').forEach(c=>{
+  c.addEventListener('click', ()=> setMode(c.dataset.mode, true));
+});
+
+/* ---------- categories ---------- */
+const CATS = [
+  ['🎷','Live music','Basements to canal-side stages'],
+  ['🖼️','Museums & shows','Late openings, new wings'],
+  ['🌳','Outdoors','Parks, swims, long walks'],
+  ['🍷','Food & drink','Terraces, natural wine, markets'],
+  ['🛍️','Markets','Noordermarkt to flea finds'],
+  ['🧸','With kids','Castles, boats, pancake runs'],
+  ['🌙','Nightlife','After-dark, for any forecast'],
+  ['🚲','Day trips','When the sky says leave town'],
+  ['✨','Free & spontaneous','Good and costs nothing'],
+];
+document.getElementById('catGrid').innerHTML = CATS.map(c=>
+  `<div class="cat"><div class="cemoji">${c[0]}</div><h4>${c[1]}</h4><p>${c[2]}</p></div>`
+).join('');
+
+/* ---------- demo phone covers ---------- */
+document.getElementById('dCover1').style.background = coverGlow(MODES.WARM);
+document.getElementById('dCover2').style.background = coverGlow(MODES.HOT);
+document.getElementById('dCover3').style.background = coverGlow(MODES.COOL);
+
+/* ---------- FAQ ---------- */
+const FAQ = [
+  ['Is WKNDR really free?', 'Yes — the core weekend discovery is free to use. It\'s built for Amsterdam first, by people who actually live here.'],
+  ['Do I need an account?', 'No. You can start swiping straight away. Your taste profile lives on your device; sign in later only if you want it to follow you across phones.'],
+  ['How does the weather part actually work?', 'WKNDR pulls live forecasts from Buienradar and KNMI, sorts the day into one of five weather modes, and scores every pick against it — so a wet Saturday and a hot one give you genuinely different plans.'],
+  ['Where do the events come from?', 'We read the city\'s best listings and publications — Resident Advisor, I amsterdam, Paradiso, Time Out, Kidsproof and more — name each source, and link you straight out to them. We signal and credit; we never republish.'],
+  ['Which cities are supported?', 'Amsterdam, deeply, for now. We\'d rather be excellent in one city than thin across many. You can request your city from the footer.'],
+];
+document.getElementById('faqList').innerHTML = FAQ.map(f=>
+  `<div class="qa"><h4><span class="q">${f[0]}</span><span style="color:var(--ink-3);font-weight:400">＋</span></h4><p>${f[1]}</p></div>`
+).join('');
+
+/* ============================================================
+   Live weather cycle — the signature touch.
+   Rotates the ambient field + chip + CTA through the 5 modes,
+   demonstrating "the weather re-ranks everything".
+   ============================================================ */
+const root = document.documentElement;
+function setMode(key){
+  const m = MODES[key];
+  root.style.setProperty('--field-1', m.c1);
+  root.style.setProperty('--field-2', m.c2);
+  root.style.setProperty('--field-3', m.c3);
+  root.style.setProperty('--field-glow', m.glow);
+  root.setAttribute('data-mode', key);
+  document.getElementById('wxGlyph').textContent = m.glyph;
+  document.getElementById('wxTemp').textContent = m.temp;
+  document.getElementById('wxMode').textContent = m.label;
+}
+let mi = 0;
+setMode(ORDER[0]);
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduce){
+  setInterval(()=>{ mi = (mi+1) % ORDER.length; setMode(ORDER[mi]); }, 4200);
+}
+</script>
+</body>
+</html>
