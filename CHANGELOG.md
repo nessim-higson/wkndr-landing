@@ -7,6 +7,15 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.3 — 2026-06-09
+- Replaced the hero's auto-scrolling marquee with a **3D cover flow**: a finite, centered,
+  viewport-independent carousel (the marquee's looping seam showed on wide screens because
+  the duplicated track didn't fill the width). Center card upright + large; neighbors recede
+  in perspective. Auto-advances, pauses on hover, click cards/dots/arrows to navigate.
+- Tuned the hero's vertical rhythm so the active card sits in view; cards reordered so no
+  two same-weather tiles sit adjacent; narrower cards on mobile so neighbors peek on both
+  sides. Works on desktop + mobile.
+
 ## v1.2 — 2026-06-09
 - Removed the gallery edge-fade overlay entirely. The left/right paper→transparent
   gradients were reading as a translucent "scrim" sitting over the pick-cards; the

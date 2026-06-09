@@ -104,7 +104,7 @@ nav{
 /* ============================================================
    HERO
    ============================================================ */
-.hero{ padding-top:clamp(40px,7vw,80px); padding-bottom:0; text-align:center; position:relative; }
+.hero{ padding-top:clamp(92px,11vw,116px); padding-bottom:0; text-align:center; position:relative; }
 /* the live ambient weather field, soft, behind hero text */
 .hero-field{
   position:absolute; inset:-14% 0 auto; height:560px; z-index:0; pointer-events:none;
@@ -124,7 +124,7 @@ nav{
 .weather-chip{
   display:inline-flex; align-items:center; gap:11px;
   background:var(--card); border:1px solid var(--line); border-radius:100px;
-  padding:8px 8px 8px 16px; font-size:13.5px; font-weight:600; margin-bottom:30px;
+  padding:8px 8px 8px 16px; font-size:13.5px; font-weight:600; margin-bottom:22px;
   box-shadow:0 6px 18px -12px rgba(0,0,0,.3);
 }
 .weather-chip .glyph{ font-size:16px; }
@@ -135,27 +135,46 @@ nav{
   transition:background .8s ease;
 }
 h1.hero-title{
-  font-size:clamp(42px, 7.4vw, 92px);
+  font-size:clamp(40px, 6.2vw, 78px);
   font-weight:700; letter-spacing:-.045em; line-height:.98;
   max-width:16ch; margin:0 auto;
 }
 h1 .swap{ color:var(--accent); }
 .hero-sub{
   font-size:clamp(17px, 1.7vw, 21px); color:var(--ink-2);
-  max-width:50ch; margin:26px auto 0; line-height:1.5;
+  max-width:50ch; margin:18px auto 0; line-height:1.5;
 }
-.hero-actions{ display:flex; gap:14px; justify-content:center; margin-top:34px; flex-wrap:wrap; }
-.hero-note{ margin-top:18px; font-size:13px; color:var(--ink-3); }
+.hero-actions{ display:flex; gap:14px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+.hero-note{ margin-top:12px; font-size:13px; color:var(--ink-3); }
 
-/* hero gallery — Maneken-style auto-scrolling rows of pick cards */
-.gallery{ margin-top:clamp(54px,8vw,90px); position:relative; z-index:2; }
-.row{ display:flex; gap:18px; width:max-content; margin-bottom:18px; }
-.row.r1{ animation:scrollL 56s linear infinite; }
-.row.r2{ animation:scrollR 64s linear infinite; }
-.row.r3{ animation:scrollL 72s linear infinite; }
-@keyframes scrollL{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-@keyframes scrollR{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
-.gallery:hover .row{ animation-play-state:paused; }
+/* hero cover flow — finite, centered, viewport-independent (works desktop + mobile) */
+.coverflow{ margin-top:clamp(20px,3vw,42px); position:relative; z-index:2; perspective:1700px; }
+.cf-stage{ position:relative; height:clamp(296px,42vw,368px); transform-style:preserve-3d; }
+.cf-item{
+  position:absolute; top:0; left:50%; width:min(306px,82vw);
+  transform-origin:50% 50%; cursor:pointer; backface-visibility:hidden;
+  transition:transform .62s cubic-bezier(.22,.61,.36,1), opacity .5s ease, filter .5s ease;
+}
+.cf-item:not(.is-active){ filter:saturate(.94) brightness(.97); }
+.cf-item.is-active{ cursor:default; }
+.cf-item .pick{ width:100%; }
+.cf-item.is-active .pick{ box-shadow:0 34px 64px -28px rgba(0,0,0,.5); }
+
+.cf-controls{ display:flex; align-items:center; justify-content:center; gap:18px; margin-top:32px; }
+.cf-btn{
+  width:44px; height:44px; border-radius:50%; border:1.5px solid var(--line);
+  background:var(--card); color:var(--ink); font-size:20px; line-height:1; cursor:pointer;
+  display:grid; place-items:center; transition:transform .15s ease, border-color .15s ease;
+}
+.cf-btn:hover{ border-color:var(--ink); transform:translateY(-2px); }
+.cf-dots{ display:flex; gap:8px; }
+.cf-dot{ width:7px; height:7px; border-radius:50%; background:var(--line); border:none; cursor:pointer; padding:0; transition:background .2s, transform .2s; }
+.cf-dot.on{ background:var(--accent); transform:scale(1.35); }
+/* narrower cards on small screens so side cards peek on BOTH sides (not just one) */
+@media (max-width:600px){
+  .cf-item{ width:64vw; }
+  .cf-stage{ height:clamp(270px,74vw,310px); }
+}
 
 .pick{
   width:280px; flex:0 0 auto; background:var(--card); border-radius:var(--radius);
@@ -399,11 +418,14 @@ footer{ padding:80px 0 50px; }
     <p class="hero-note">Free to use · Amsterdam · no account to start</p>
   </div>
 
-  <!-- gallery of weather-tinted pick cards -->
-  <div class="gallery wrap" aria-hidden="true">
-    <div class="row r1" id="row1"></div>
-    <div class="row r2" id="row2"></div>
-    <div class="row r3" id="row3"></div>
+  <!-- cover flow of weather-tinted pick cards -->
+  <div class="coverflow" aria-hidden="true">
+    <div class="cf-stage" id="cfStage"></div>
+    <div class="cf-controls">
+      <button class="cf-btn" id="cfPrev" aria-label="Previous">‹</button>
+      <div class="cf-dots" id="cfDots"></div>
+      <button class="cf-btn" id="cfNext" aria-label="Next">›</button>
+    </div>
   </div>
 </header>
 
@@ -597,7 +619,7 @@ footer{ padding:80px 0 50px; }
       </div>
     </div>
     <div class="foot-bottom">
-      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.2</span></div>
+      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.3</span></div>
       <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
     </div>
   </div>
@@ -659,15 +681,54 @@ function pickCard(p){
     </div>
   </article>`;
 }
-// build 3 rows, duplicated for seamless marquee loop
-function fillRow(id, items){
-  const html = items.map(pickCard).join('');
-  document.getElementById(id).innerHTML = html + html;
+/* ---------- hero cover flow ---------- */
+const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// curated 9, ordered so no two same-weather cards sit adjacent (incl. loop wrap)
+const CF = [PICKS[0],PICKS[1],PICKS[5],PICKS[6],PICKS[2],PICKS[10],PICKS[12],PICKS[8],PICKS[7]];
+const cfStage = document.getElementById('cfStage');
+cfStage.innerHTML = CF.map((p,i)=>`<div class="cf-item" data-i="${i}">${pickCard(p)}</div>`).join('');
+const cfItems = [...cfStage.querySelectorAll('.cf-item')];
+const CFN = cfItems.length;
+let cfActive = 0;
+
+const cfDots = document.getElementById('cfDots');
+cfDots.innerHTML = CF.map((_,i)=>`<button class="cf-dot" data-i="${i}" aria-label="Card ${i+1}"></button>`).join('');
+const cfDotEls = [...cfDots.querySelectorAll('.cf-dot')];
+
+const cfStep = () => (cfItems[0]?.offsetWidth || 300) * 0.54;
+function cfLayout(){
+  const S = cfStep();
+  cfItems.forEach((el,i)=>{
+    let off = i - cfActive;
+    if(off >  CFN/2) off -= CFN;          // wrap to nearest — flows as a loop
+    if(off < -CFN/2) off += CFN;
+    const a = Math.abs(off), sign = Math.sign(off);
+    const scale = Math.max(0.62, 1 - a*0.15);
+    const rotY  = -sign * Math.min(a,3) * 26;
+    const op    = a > 2.5 ? 0 : 1 - a*0.2;
+    el.style.transform = `translateX(calc(-50% + ${off*S}px)) rotateY(${rotY}deg) scale(${scale})`;
+    el.style.zIndex = String(100 - Math.round(a*10));
+    el.style.opacity = String(Math.max(0, op));
+    el.style.pointerEvents = a > 2.5 ? 'none' : 'auto';
+    el.classList.toggle('is-active', off === 0);
+  });
+  cfDotEls.forEach((d,i)=> d.classList.toggle('on', i === cfActive));
 }
-const shuffled = [...PICKS];
-fillRow('row1', shuffled.slice(0,5));
-fillRow('row2', shuffled.slice(5,10));
-fillRow('row3', shuffled.slice(10,15));
+const cfGo = (i) => { cfActive = (i % CFN + CFN) % CFN; cfLayout(); };
+cfItems.forEach((el,i)=> el.addEventListener('click', ()=> cfGo(i)));
+cfDotEls.forEach((d,i)=> d.addEventListener('click', ()=> cfGo(i)));
+document.getElementById('cfPrev').addEventListener('click', ()=> cfGo(cfActive-1));
+document.getElementById('cfNext').addEventListener('click', ()=> cfGo(cfActive+1));
+window.addEventListener('resize', cfLayout);
+cfLayout();
+
+let cfTimer = null;
+const cfStop = () => { if(cfTimer){ clearInterval(cfTimer); cfTimer = null; } };
+const cfPlay = () => { if(prefersReduce) return; cfStop(); cfTimer = setInterval(()=> cfGo(cfActive+1), 2900); };
+const cfEl = document.querySelector('.coverflow');
+cfEl.addEventListener('mouseenter', cfStop);
+cfEl.addEventListener('mouseleave', cfPlay);
+cfPlay();
 
 /* ---------- weather mode cards ---------- */
 document.getElementById('modeGrid').innerHTML = ORDER.map(k=>{
