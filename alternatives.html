@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="WARM">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WKNDR — opening module alternatives</title>
+<style>
+:root{
+  --ink:#0e0e0c; --ink-2:#54534d; --ink-3:#8b8a82;
+  --paper:#faf8f3; --card:#fff; --line:#e7e3d8; --accent:#ff4d1f;
+  --radius:20px;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{ font-family:"Helvetica Neue",Helvetica,-apple-system,BlinkMacSystemFont,Arial,sans-serif; background:var(--paper); color:var(--ink); line-height:1.45; overflow-x:hidden; }
+a{ color:inherit; text-decoration:none; }
+.mono{ font-family:"JetBrains Mono",ui-monospace,Menlo,monospace; }
+.wrap{ width:min(1160px,92vw); margin:0 auto; }
+
+.btn{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none; font-size:14.5px; font-weight:600; letter-spacing:-.01em; padding:13px 22px; border-radius:100px; transition:transform .18s, box-shadow .2s; }
+.btn-accent{ background:var(--accent); color:#fff; box-shadow:0 8px 22px -10px rgba(255,77,31,.8); }
+.btn-accent:hover{ transform:translateY(-2px); }
+.btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+.btn-ghost:hover{ border-color:var(--ink); }
+
+h1{ font-size:clamp(38px,5.6vw,70px); font-weight:700; letter-spacing:-.045em; line-height:.99; }
+h1 .swap{ color:var(--accent); }
+.lede{ font-size:clamp(16px,1.5vw,19px); color:var(--ink-2); line-height:1.5; }
+
+/* ---- weather chip ---- */
+.weather-chip{ display:inline-flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:100px; padding:7px 7px 7px 15px; font-size:13px; font-weight:600; box-shadow:0 6px 18px -12px rgba(0,0,0,.3); }
+.weather-chip .mode-tag{ font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#fff; padding:5px 10px; border-radius:100px; background:linear-gradient(120deg,#6fa24a,#d8e08a); }
+
+/* ============ COMPACT NAV (reduced width — hugs content) ============ */
+nav{ position:fixed; top:16px; left:0; right:0; z-index:200; display:flex; justify-content:center; pointer-events:none; }
+.nav-pill{ pointer-events:auto; display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.8); backdrop-filter:saturate(180%) blur(18px); -webkit-backdrop-filter:saturate(180%) blur(18px); border:1px solid rgba(231,227,216,.9); border-radius:100px; padding:7px 7px 7px 18px; box-shadow:0 10px 30px -16px rgba(0,0,0,.28); }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; letter-spacing:-.04em; }
+.brand .dot{ width:11px; height:11px; border-radius:50%; background:conic-gradient(from 200deg,#ff9a3d,#ffd166,#c2310e,#ff9a3d); box-shadow:0 0 0 3px rgba(255,255,255,.6); }
+.nav-links{ display:flex; gap:22px; font-size:13.5px; font-weight:500; color:var(--ink-2); margin:0 14px 0 18px; }
+.nav-links a:hover{ color:var(--ink); }
+.nav-pill .btn{ padding:9px 17px; font-size:13.5px; }
+@media (max-width:680px){ .nav-links{ display:none; } }
+
+/* ============ pick card primitives (shared) ============ */
+.fitpill{ position:absolute; top:12px; left:12px; z-index:3; font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:rgba(255,255,255,.93); color:var(--ink); padding:5px 10px; border-radius:100px; backdrop-filter:blur(4px); }
+.cover{ position:relative; overflow:hidden; background:var(--line); }
+.cover .g{ position:absolute; inset:0; z-index:0; }
+.cover img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+.cover .grad{ position:absolute; inset:0; z-index:2; background:linear-gradient(to top, rgba(0,0,0,.5), transparent 55%); }
+
+/* ============ module label band ============ */
+.variant-head{ border-top:1px dashed var(--line); }
+.variant-head .wrap{ display:flex; align-items:baseline; gap:14px; padding:54px 0 0; flex-wrap:wrap; }
+.variant-tag{ font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700; letter-spacing:.04em; color:#fff; background:var(--ink); padding:5px 11px; border-radius:7px; }
+.variant-title{ font-size:21px; font-weight:700; letter-spacing:-.025em; }
+.variant-note{ font-size:14px; color:var(--ink-3); }
+section.module{ padding:34px 0 78px; }
+
+/* ===================================================================
+   A — STATIC BENTO GALLERY
+   =================================================================== */
+.heroA{ text-align:center; padding-top:8px; }
+.heroA .lede{ max-width:48ch; margin:16px auto 0; }
+.heroA .acts{ display:flex; gap:12px; justify-content:center; margin-top:24px; }
+.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:166px; gap:14px; margin-top:40px; }
+.bento .pcard{ position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transition:transform .25s; }
+.bento .pcard:hover{ transform:translateY(-5px); }
+.bento .pcard .cover{ position:absolute; inset:0; }
+.bento .pcard .info{ position:absolute; left:0; right:0; bottom:0; z-index:3; padding:14px 15px; color:#fff; }
+.bento .pcard .info .t{ font-size:15.5px; font-weight:700; letter-spacing:-.02em; line-height:1.16; text-shadow:0 1px 8px rgba(0,0,0,.4); }
+.bento .pcard .info .m{ font-size:11.5px; opacity:.9; margin-top:4px; }
+.bento .feat{ grid-column:span 2; grid-row:span 2; }
+.bento .feat .info .t{ font-size:24px; }
+.bento .tall{ grid-row:span 2; }
+@media (max-width:760px){ .bento{ grid-template-columns:repeat(2,1fr); grid-auto-rows:150px; } .bento .feat{ grid-column:span 2; } }
+
+/* ===================================================================
+   B — SWIPE STACK (product-true)
+   =================================================================== */
+.heroB{ display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center; }
+.heroB .copy .weather-chip{ margin-bottom:22px; }
+.heroB .copy .lede{ max-width:42ch; margin-top:20px; }
+.heroB .copy .acts{ display:flex; gap:12px; margin-top:26px; }
+.stack{ position:relative; height:520px; display:flex; align-items:center; justify-content:center; }
+.scard{ position:absolute; width:320px; max-width:84vw; border-radius:24px; overflow:hidden; background:var(--card); border:1px solid var(--line); box-shadow:0 30px 60px -30px rgba(0,0,0,.5); }
+.scard .cover{ height:300px; }
+.scard .meta{ padding:16px 18px 18px; }
+.scard .meta .t{ font-size:20px; font-weight:700; letter-spacing:-.025em; line-height:1.1; }
+.scard .meta .v{ font-size:13px; color:var(--ink-3); margin-top:8px; }
+.scard .meta .src{ font-size:11px; color:var(--ink-3); margin-top:10px; }
+.scard.s0{ z-index:3; transform:translateY(0) rotate(-1.5deg); }
+.scard.s1{ z-index:2; transform:translateY(18px) scale(.95) rotate(2deg); filter:brightness(.98); }
+.scard.s2{ z-index:1; transform:translateY(34px) scale(.9) rotate(-3deg); filter:brightness(.96); }
+.dock{ position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); display:flex; gap:16px; z-index:5; }
+.dock .b{ width:54px; height:54px; border-radius:50%; display:grid; place-items:center; background:var(--card); border:1px solid var(--line); box-shadow:0 10px 22px -10px rgba(0,0,0,.4); font-size:22px; }
+.dock .b.nope{ color:#d23b2a; } .dock .b.save{ color:var(--accent); } .dock .b.like{ color:#1f9d4f; }
+@media (max-width:820px){ .heroB{ grid-template-columns:1fr; gap:40px; text-align:center; } .heroB .copy .acts,.heroB .copy .weather-chip{ justify-content:center; } .stack{ height:480px; } }
+
+/* ===================================================================
+   C — EDITORIAL SPLIT (featured pick)
+   =================================================================== */
+.heroC{ display:grid; grid-template-columns:1.04fr .96fr; gap:54px; align-items:center; }
+.heroC .copy .weather-chip{ margin-bottom:20px; }
+.heroC .copy .lede{ max-width:40ch; margin-top:20px; }
+.heroC .copy .acts{ display:flex; gap:12px; margin-top:26px; }
+.heroC .copy .meta-row{ margin-top:30px; display:flex; gap:26px; }
+.heroC .copy .meta-row .k{ font-size:12px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.08em; }
+.heroC .copy .meta-row .v{ font-size:16px; font-weight:700; margin-top:4px; }
+.feature{ position:relative; border-radius:26px; overflow:hidden; height:540px; border:1px solid var(--line); box-shadow:0 36px 70px -34px rgba(0,0,0,.5); }
+.feature .cover{ position:absolute; inset:0; }
+.feature .badge{ position:absolute; top:18px; left:18px; z-index:4; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; background:rgba(255,255,255,.94); padding:7px 13px; border-radius:100px; }
+.feature .cap{ position:absolute; left:0; right:0; bottom:0; z-index:4; padding:26px; color:#fff; }
+.feature .cap .ribbon{ font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; opacity:.92; }
+.feature .cap .t{ font-size:30px; font-weight:700; letter-spacing:-.03em; line-height:1.04; margin-top:8px; }
+.feature .cap .s{ font-size:13.5px; opacity:.92; margin-top:10px; }
+@media (max-width:860px){ .heroC{ grid-template-columns:1fr; gap:36px; } .feature{ height:440px; } }
+
+/* ===================================================================
+   D — THIS-WEEKEND LIST (editorial brief)
+   =================================================================== */
+.heroD .top{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; }
+.heroD .top .lede{ max-width:40ch; margin-top:16px; }
+.brief{ margin-top:38px; border-top:1px solid var(--line); }
+.lrow{ display:grid; grid-template-columns:104px 1fr auto; gap:22px; align-items:center; padding:18px 6px; border-bottom:1px solid var(--line); transition:background .15s; }
+.lrow:hover{ background:rgba(0,0,0,.015); }
+.lrow .thumb{ width:104px; height:74px; border-radius:13px; overflow:hidden; position:relative; border:1px solid var(--line); }
+.lrow .thumb .cover{ position:absolute; inset:0; }
+.lrow .body .t{ font-size:19px; font-weight:700; letter-spacing:-.025em; }
+.lrow .body .v{ font-size:13.5px; color:var(--ink-2); margin-top:5px; }
+.lrow .body .src{ font-size:11.5px; color:var(--ink-3); margin-top:6px; }
+.lrow .right{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+.lrow .pill{ font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:var(--paper); border:1px solid var(--line); color:var(--ink); padding:5px 10px; border-radius:100px; white-space:nowrap; }
+.lrow .when{ font-size:12px; color:var(--ink-3); }
+@media (max-width:680px){ .lrow{ grid-template-columns:74px 1fr; } .lrow .thumb{ width:74px; height:64px; } .lrow .right{ display:none; } }
+
+footer{ padding:50px 0; border-top:1px dashed var(--line); text-align:center; color:var(--ink-3); font-size:13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-pill">
+    <a class="brand" href="#"><span class="dot"></span> WKNDR</a>
+    <div class="nav-links">
+      <a href="#">How it works</a>
+      <a href="#">Weather</a>
+      <a href="#">FAQ</a>
+    </div>
+    <a class="btn btn-accent" href="#">Open WKNDR</a>
+  </div>
+</nav>
+
+<div style="height:118px"></div>
+<div class="wrap" style="text-align:center; padding-bottom:8px;">
+  <span class="mono" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);">Opening module — 4 alternatives · real app content · compact nav</span>
+</div>
+
+<!-- ===================== A — BENTO ===================== -->
+<div class="variant-head"><div class="wrap">
+  <span class="variant-tag">A</span>
+  <span class="variant-title">Static bento gallery</span>
+  <span class="variant-note">No motion, no looping seam. A clean editorial grid of this weekend's real picks.</span>
+</div></div>
+<section class="module"><div class="wrap heroA">
+  <h1>Your weekend, sorted by the <span class="swap">weather</span>.</h1>
+  <p class="lede">WKNDR reads the whole city, learns your taste, and re-ranks it for this weekend's sky.</p>
+  <div class="acts"><a class="btn btn-accent">Start swiping — it's free</a><a class="btn btn-ghost">See how it works</a></div>
+  <div class="bento" id="bento"></div>
+</div></section>
+
+<!-- ===================== B — SWIPE STACK ===================== -->
+<div class="variant-head"><div class="wrap">
+  <span class="variant-tag">B</span>
+  <span class="variant-title">Swipe stack (product-true)</span>
+  <span class="variant-note">Shows the actual product gesture — a deck you swipe, mirrored from the app.</span>
+</div></div>
+<section class="module"><div class="wrap heroB">
+  <div class="copy">
+    <div class="weather-chip"><span>🌤️</span><span>Right now in Amsterdam · <strong>19°</strong></span><span class="mode-tag">Warm</span></div>
+    <h1>Swipe a few cards. Get a weekend.</h1>
+    <p class="lede">Left, right, up to save. Every swipe trains your taste — and the weather is always in the ranking.</p>
+    <div class="acts"><a class="btn btn-accent">Start swiping — it's free</a><a class="btn btn-ghost">How it works</a></div>
+  </div>
+  <div class="stack" id="stack"></div>
+</div></section>
+
+<!-- ===================== C — EDITORIAL SPLIT ===================== -->
+<div class="variant-head"><div class="wrap">
+  <span class="variant-tag">C</span>
+  <span class="variant-title">Editorial split — one featured pick</span>
+  <span class="variant-note">Calm and premium. Big headline + the single top pick for today's weather.</span>
+</div></div>
+<section class="module"><div class="wrap heroC">
+  <div class="copy">
+    <div class="weather-chip"><span>🌤️</span><span>Right now in Amsterdam · <strong>19°</strong></span><span class="mode-tag">Warm</span></div>
+    <h1>Your weekend, sorted by the <span class="swap">weather</span>.</h1>
+    <p class="lede">Swipe-trained taste, weather-ranked picks, sources named and linked.</p>
+    <div class="acts"><a class="btn btn-accent">Start swiping — it's free</a></div>
+    <div class="meta-row">
+      <div><div class="k">Today reads as</div><div class="v">Warm · dry</div></div>
+      <div><div class="k">Top of your list</div><div class="v" id="cTopCat">Live & gigs</div></div>
+    </div>
+  </div>
+  <div class="feature" id="feature"></div>
+</div></section>
+
+<!-- ===================== D — THIS-WEEKEND LIST ===================== -->
+<div class="variant-head"><div class="wrap">
+  <span class="variant-tag">D</span>
+  <span class="variant-title">This-weekend brief (list)</span>
+  <span class="variant-note">Content-forward — looks like the real ranked weekend brief, weather-fit pills on the right.</span>
+</div></div>
+<section class="module"><div class="wrap heroD">
+  <div class="top">
+    <div>
+      <h1>This weekend in<br>Amsterdam.</h1>
+      <p class="lede">Ranked for Warm, dry weather and your taste. Five of 40-odd picks.</p>
+    </div>
+    <a class="btn btn-accent">Open the full list</a>
+  </div>
+  <div class="brief" id="brief"></div>
+</div></section>
+
+<footer>WKNDR · opening-module alternatives · pick A / B / C / D and I'll ship it as the next version</footer>
+
+<script>
+/* weather palettes */
+const MODES = {
+  HOT:{c1:'#ff9a3d',c2:'#c2310e',c3:'#5a1606',glow:'#ffd166'},
+  WARM:{c1:'#d8e08a',c2:'#6fa24a',c3:'#2c4a26',glow:'#fff0b0'},
+  COOL:{c1:'#9fc0b8',c2:'#4a716b',c3:'#1e3433',glow:'#cfe6df'},
+  COLD_WET:{c1:'#6c7e9c',c2:'#313f5e',c3:'#121a2e',glow:'#9fb2cc'},
+  VOLATILE:{c1:'#e08a4a',c2:'#7a5a7a',c3:'#2a3358',glow:'#ffcf8a'},
+};
+const coverGlow = (k)=>{const m=MODES[k];return `radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;};
+
+/* derive the BEST WHEN ___ label from real weatherFit */
+function fitPill(fit){
+  const wet=fit.includes('COLD_WET'), hot=fit.includes('HOT'), warm=fit.includes('WARM'), cool=fit.includes('COOL');
+  if(hot&&wet) return 'Rain or shine';
+  if(hot) return 'Best when sunny';
+  if(warm&&!wet) return 'Best when warm';
+  if(wet) return 'Best on a wet day';
+  if(cool) return 'Best when cool';
+  return 'Any weather';
+}
+const gradMode = (fit)=> fit[0];
+
+/* === REAL CONTENT — curated from ~/Code/wkndr app/src/data/picks.ts (weekend 5–7 Jun) === */
+const PICKS = [
+  {id:'fka-twigs', t:'FKA twigs + Yves Tumor', v:'Ziggo Dome · Zuidoost', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/7413669/huge_avatar', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {id:'red-light-jazz', t:'Red Light Jazz Festival', v:'Around De Wallen · Centrum', when:'Fri–Sun 5–7 Jun', cat:'Live & gigs', src:'I amsterdam', img:'https://redlightjazz.com/wp-content/uploads/2025/05/sabrina-starke-at-red-light-jazz-uitgelicht.webp', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {id:'jungle-by-night', t:'Jungle by Night', v:'Vondelpark Openluchttheater', when:'Sun 7 Jun · free', cat:'Live & gigs', src:'Songkick', img:'https://upload.wikimedia.org/wikipedia/commons/c/c2/Jungle_by_Night.jpg', fit:['HOT','WARM','COOL']},
+  {id:'noordermarkt', t:'Noordermarkt', v:'Noordermarkt square · Jordaan', when:'Sat 6 Jun · 09:00', cat:'Markets', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/66791e9931e55c556280c599/1800x1020.jpg', fit:['HOT','WARM','COOL']},
+  {id:'sunday-market', t:'Sunday Market — Westergas', v:'Westergasfabriek · West', when:'Sun 7 Jun · 12:00', cat:'Markets', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/60913a7a5e56be4386f24851/sunday%20market%20westergas.webp', fit:['HOT','WARM','COOL']},
+  {id:'zaanse-schans', t:'Zaanse Schans windmills', v:'Zaandam · 17 min', when:'Daily', cat:'Day-trip', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Beautiful-windmills-at-Zaanse-Schans-daytrip-near-Amsterdam-Holland-Netherlands.jpg', fit:['HOT','WARM','COOL']},
+  {id:'foodhallen', t:'Foodhallen', v:'De Hallen · West', when:'Daily · 11:00', cat:'Eat', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg/1280px-Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {id:'eye', t:'Eye Filmmuseum', v:'Eye · Noord', when:'Daily', cat:'Stage & screen', src:'Eye programme', img:'https://assets.eyefilm.nl/images/_1200x630_crop_center-center_none/Foto-EYE-Marcus-Koppen-bijgesneden-2_2021-04-12-140514.jpeg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {id:'pllek', t:'Pllek — waterfront hang', v:'NDSM · Noord', when:'Daily · lunch–late', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {id:'wynand-fockink', t:'Wynand Fockink jenever', v:'Centrum', when:'Daily · 14:00', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Wynand_Focking_Amsterdam_2014_%284%29.jpg/1280px-Wynand_Focking_Amsterdam_2014_%284%29.jpg', fit:['COOL','COLD_WET','VOLATILE']},
+];
+
+const coverEl = (p, withGrad)=>`<div class="cover"><div class="g" style="background:${coverGlow(gradMode(p.fit))}"></div><img src="${p.img}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" alt="">${withGrad?'<div class="grad"></div>':''}<span class="fitpill">${fitPill(p.fit)}</span></div>`;
+
+/* ---- A: bento ---- */
+const bentoOrder = ['fka-twigs','jungle-by-night','noordermarkt','zaanse-schans','pllek','sunday-market','eye'];
+const byId = id => PICKS.find(p=>p.id===id);
+document.getElementById('bento').innerHTML = bentoOrder.map((id,i)=>{
+  const p=byId(id); const cls = i===0?'feat':(i===3||i===4?'tall':'');
+  return `<article class="pcard ${cls}">${coverEl(p,true)}<div class="info"><div class="t">${p.t}</div><div class="m">${p.v} · ${p.when}</div></div></article>`;
+}).join('');
+
+/* ---- B: stack ---- */
+const stackOrder=['fka-twigs','red-light-jazz','jungle-by-night'];
+document.getElementById('stack').innerHTML = stackOrder.map((id,i)=>{
+  const p=byId(id);
+  return `<div class="scard s${i}">${i===0?coverEl(p,false):`<div class="cover" style="background:${coverGlow(gradMode(p.fit))}"></div>`}${i===0?`<div class="meta"><div class="t">${p.t}</div><div class="v">${p.v} · ${p.when}</div><div class="src">via ${p.src}</div></div>`:''}</div>`;
+}).join('') + `<div class="dock"><div class="b nope">✕</div><div class="b save">★</div><div class="b like">♥</div></div>`;
+
+/* ---- C: feature ---- */
+(()=>{ const p=byId('red-light-jazz');
+  document.getElementById('feature').innerHTML = `${coverEl(p,true).replace('fitpill','badge')}<div class="cap"><div class="ribbon">Top pick for this weekend</div><div class="t">${p.t}</div><div class="s">${p.v} · ${p.when} · via ${p.src}</div></div>`;
+})();
+
+/* ---- D: list ---- */
+const briefOrder=['fka-twigs','red-light-jazz','jungle-by-night','noordermarkt','eye'];
+document.getElementById('brief').innerHTML = briefOrder.map(id=>{
+  const p=byId(id);
+  return `<div class="lrow"><div class="thumb">${coverEl(p,false).replace(/<span class="fitpill[^>]*>[^<]*<\/span>/,'')}</div><div class="body"><div class="t">${p.t}</div><div class="v">${p.v}</div><div class="src">via ${p.src} · ${p.cat}</div></div><div class="right"><span class="pill">${fitPill(p.fit)}</span><span class="when">${p.when}</span></div></div>`;
+}).join('');
+</script>
+</body>
+</html>
