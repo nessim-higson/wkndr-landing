@@ -73,38 +73,37 @@ section{ padding:clamp(72px, 11vw, 140px) 0; position:relative; }
    ============================================================ */
 .nav-spacer{ height:96px; }
 nav{
-  position:fixed; top:18px; left:0; right:0; z-index:100;
+  position:fixed; top:16px; left:0; right:0; z-index:100;
   display:flex; justify-content:center; pointer-events:none;
 }
 .nav-pill{
   pointer-events:auto;
-  width:min(1180px, 92vw);
-  display:flex; align-items:center; justify-content:space-between; gap:24px;
-  background:rgba(255,255,255,.72);
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.78);
   backdrop-filter:saturate(180%) blur(18px);
   -webkit-backdrop-filter:saturate(180%) blur(18px);
   border:1px solid rgba(231,227,216,.9);
   border-radius:100px;
-  padding:11px 12px 11px 22px;
-  box-shadow:0 10px 30px -16px rgba(0,0,0,.25);
+  padding:7px 7px 7px 18px;
+  box-shadow:0 10px 30px -16px rgba(0,0,0,.28);
 }
-.brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; letter-spacing:-.04em; }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; letter-spacing:-.04em; }
 .brand .dot{
-  width:13px; height:13px; border-radius:50%;
+  width:11px; height:11px; border-radius:50%;
   background:conic-gradient(from 200deg, var(--field-1), var(--field-glow), var(--field-2), var(--field-1));
   box-shadow:0 0 0 3px rgba(255,255,255,.6), 0 0 14px -2px var(--field-glow);
   transition:background .8s ease;
 }
-.nav-links{ display:flex; gap:30px; font-size:14.5px; font-weight:500; color:var(--ink-2); }
+.nav-links{ display:flex; gap:22px; font-size:13.5px; font-weight:500; color:var(--ink-2); margin:0 14px 0 18px; }
 .nav-links a{ transition:color .15s ease; }
 .nav-links a:hover{ color:var(--ink); }
-.nav-cta{ display:flex; align-items:center; gap:10px; }
-@media (max-width:860px){ .nav-links{ display:none; } }
+.nav-pill .btn{ padding:9px 17px; font-size:13.5px; }
+@media (max-width:680px){ .nav-links{ display:none; } }
 
 /* ============================================================
    HERO
    ============================================================ */
-.hero{ padding-top:clamp(92px,11vw,116px); padding-bottom:0; text-align:center; position:relative; }
+.hero{ padding-top:clamp(92px,11vw,116px); padding-bottom:0; position:relative; text-align:center; }
 /* the live ambient weather field, soft, behind hero text */
 .hero-field{
   position:absolute; inset:-14% 0 auto; height:560px; z-index:0; pointer-events:none;
@@ -137,44 +136,32 @@ nav{
 h1.hero-title{
   font-size:clamp(40px, 6.2vw, 78px);
   font-weight:700; letter-spacing:-.045em; line-height:.98;
-  max-width:16ch; margin:0 auto;
+  max-width:18ch; margin:0 auto;
 }
 h1 .swap{ color:var(--accent); }
 .hero-sub{
-  font-size:clamp(17px, 1.7vw, 21px); color:var(--ink-2);
+  font-size:clamp(16px, 1.6vw, 20px); color:var(--ink-2);
   max-width:50ch; margin:18px auto 0; line-height:1.5;
 }
 .hero-actions{ display:flex; gap:14px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
 .hero-note{ margin-top:12px; font-size:13px; color:var(--ink-3); }
 
-/* hero cover flow — finite, centered, viewport-independent (works desktop + mobile) */
-.coverflow{ margin-top:clamp(20px,3vw,42px); position:relative; z-index:2; perspective:1700px; }
-.cf-stage{ position:relative; height:clamp(296px,42vw,368px); transform-style:preserve-3d; }
-.cf-item{
-  position:absolute; top:0; left:50%; width:min(306px,82vw);
-  transform-origin:50% 50%; cursor:pointer; backface-visibility:hidden;
-  transition:transform .62s cubic-bezier(.22,.61,.36,1), opacity .5s ease, filter .5s ease;
-}
-.cf-item:not(.is-active){ filter:saturate(.94) brightness(.97); }
-.cf-item.is-active{ cursor:default; }
-.cf-item .pick{ width:100%; }
-.cf-item.is-active .pick{ box-shadow:0 34px 64px -28px rgba(0,0,0,.5); }
-
-.cf-controls{ display:flex; align-items:center; justify-content:center; gap:18px; margin-top:32px; }
-.cf-btn{
-  width:44px; height:44px; border-radius:50%; border:1.5px solid var(--line);
-  background:var(--card); color:var(--ink); font-size:20px; line-height:1; cursor:pointer;
-  display:grid; place-items:center; transition:transform .15s ease, border-color .15s ease;
-}
-.cf-btn:hover{ border-color:var(--ink); transform:translateY(-2px); }
-.cf-dots{ display:flex; gap:8px; }
-.cf-dot{ width:7px; height:7px; border-radius:50%; background:var(--line); border:none; cursor:pointer; padding:0; transition:background .2s, transform .2s; }
-.cf-dot.on{ background:var(--accent); transform:scale(1.35); }
-/* narrower cards on small screens so side cards peek on BOTH sides (not just one) */
-@media (max-width:600px){
-  .cf-item{ width:64vw; }
-  .cf-stage{ height:clamp(270px,74vw,310px); }
-}
+/* hero bento — editorial grid of real picks, with live flip-refresh movement */
+.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:168px; gap:14px; margin-top:clamp(36px,5vw,54px); position:relative; z-index:2; perspective:1500px; }
+.pcard{ position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transform-style:preserve-3d; backface-visibility:hidden; transition:box-shadow .25s ease; }
+.pcard:hover{ box-shadow:0 24px 46px -22px rgba(0,0,0,.52); }
+.pcard .cover{ position:absolute; inset:0; }
+.pcard .cover .g{ position:absolute; inset:0; z-index:0; }
+.pcard .cover img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+.pcard .cover .grad{ position:absolute; inset:0; z-index:2; background:linear-gradient(to top, rgba(0,0,0,.58), transparent 58%); }
+.pcard .fitpill{ position:absolute; top:12px; left:12px; z-index:4; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:rgba(255,255,255,.93); color:var(--ink); padding:5px 9px; border-radius:100px; backdrop-filter:blur(4px); }
+.pcard .info{ position:absolute; left:0; right:0; bottom:0; z-index:4; padding:14px 15px; color:#fff; text-align:left; }
+.pcard .info .t{ font-size:15.5px; font-weight:700; letter-spacing:-.02em; line-height:1.16; text-shadow:0 1px 10px rgba(0,0,0,.5); }
+.pcard .info .m{ font-size:11.5px; opacity:.92; margin-top:4px; }
+.pcard.feat{ grid-column:span 2; grid-row:span 2; }
+.pcard.feat .info .t{ font-size:24px; }
+.pcard.tall{ grid-row:span 2; }
+@media (max-width:760px){ .bento{ grid-template-columns:repeat(2,1fr); grid-auto-rows:148px; } .pcard.feat{ grid-column:span 2; grid-row:span 2; } .pcard.tall{ grid-row:span 1; } }
 
 .pick{
   width:280px; flex:0 0 auto; background:var(--card); border-radius:var(--radius);
@@ -266,40 +253,20 @@ h1 .swap{ color:var(--accent); }
   background:var(--paper);
 }
 .phone .notch{ position:absolute; top:14px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#111; border-radius:100px; z-index:5; }
-.deck{ position:absolute; inset:0; }
-.swipecard{
-  position:absolute; left:18px; right:18px; top:64px; bottom:104px;
-  border-radius:26px; overflow:hidden; background:var(--card);
-  box-shadow:0 24px 50px -24px rgba(0,0,0,.5); border:1px solid var(--line);
-}
-.swipecard .sc-cover{ height:62%; position:relative; }
-.swipecard .sc-cover .g{ position:absolute; inset:0; }
-.swipecard .sc-fit{
-  position:absolute; top:14px; left:14px; font-size:10px; font-weight:700;
-  letter-spacing:.06em; text-transform:uppercase; background:rgba(255,255,255,.93);
-  padding:5px 10px; border-radius:100px;
-}
-.swipecard .sc-meta{ padding:16px 18px; }
-.swipecard .sc-title{ font-size:21px; font-weight:700; letter-spacing:-.025em; line-height:1.1; }
-.swipecard .sc-src{ margin-top:10px; font-size:12px; color:var(--ink-3); }
-.swipecard.behind1{ transform:scale(.94) translateY(16px); filter:brightness(.97); z-index:1; }
-.swipecard.behind2{ transform:scale(.88) translateY(32px); filter:brightness(.94); z-index:0; }
-.swipecard.front{ z-index:2; animation:swipeCycle 6s ease-in-out infinite; }
-@keyframes swipeCycle{
-  0%,55%{ transform:translateX(0) rotate(0); opacity:1; }
-  70%{ transform:translateX(115%) rotate(13deg); opacity:0; }
-  71%{ transform:translateX(-115%) rotate(-13deg); opacity:0; }
-  85%,100%{ transform:translateX(0) rotate(0); opacity:1; }
-}
-.swipe-badge{
-  position:absolute; top:84px; z-index:6; font-size:13px; font-weight:800; letter-spacing:.08em;
-  text-transform:uppercase; padding:8px 14px; border-radius:12px; opacity:0;
-}
-.swipe-badge.like{ right:30px; color:#1f9d4f; border:2.5px solid #1f9d4f; transform:rotate(12deg); animation:badgeLike 6s ease-in-out infinite; }
-@keyframes badgeLike{ 0%,55%{opacity:0;} 60%,68%{opacity:1;} 72%,100%{opacity:0;} }
-.dock{ position:absolute; bottom:30px; left:0; right:0; display:flex; justify-content:center; gap:16px; z-index:4; }
-.dock .b{ width:50px; height:50px; border-radius:50%; display:grid; place-items:center; background:var(--card); border:1px solid var(--line); box-shadow:0 8px 18px -10px rgba(0,0,0,.4); font-size:20px; }
-.dock .b.nope{ color:#d23b2a; } .dock .b.like{ color:#1f9d4f; } .dock .b.save{ color:var(--accent); }
+/* phone shows the List view (the stack's other posture) */
+.pl-head{ padding:30px 18px 10px; }
+.pl-chip{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; background:var(--paper); border:1px solid var(--line); padding:5px 11px; border-radius:100px; }
+.pl-title{ font-size:23px; font-weight:700; letter-spacing:-.03em; margin-top:12px; }
+.pl-sub{ font-size:11px; color:var(--ink-3); margin-top:3px; }
+.pl-list{ position:absolute; left:0; right:0; top:128px; bottom:0; overflow:hidden; padding:2px 12px 16px; }
+.pl-row{ display:flex; gap:12px; align-items:center; padding:11px 6px; border-bottom:1px solid var(--line); }
+.pl-row .th{ width:54px; height:54px; flex:0 0 auto; border-radius:12px; overflow:hidden; position:relative; border:1px solid var(--line); }
+.pl-row .th .g{ position:absolute; inset:0; z-index:0; }
+.pl-row .th img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+.pl-row .tx{ min-width:0; flex:1; }
+.pl-row .tx .t{ font-size:14px; font-weight:700; letter-spacing:-.02em; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pl-row .tx .v{ font-size:11px; color:var(--ink-3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pl-row .pf{ flex:0 0 auto; font-size:9px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; background:var(--paper); border:1px solid var(--line); padding:4px 7px; border-radius:100px; white-space:nowrap; }
 
 .demo-copy .feat{ display:flex; gap:15px; margin-top:26px; }
 .demo-copy .feat .fi{ flex:0 0 auto; width:42px; height:42px; border-radius:12px; background:var(--paper); border:1px solid var(--line); display:grid; place-items:center; font-size:20px; }
@@ -385,12 +352,9 @@ footer{ padding:80px 0 50px; }
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#weather">Weather</a>
-      <a href="#categories">What's on</a>
       <a href="#faq">FAQ</a>
     </div>
-    <div class="nav-cta">
-      <a class="btn btn-accent" href="#download">Open WKNDR</a>
-    </div>
+    <a class="btn btn-accent" href="#download">Open WKNDR</a>
   </div>
 </nav>
 
@@ -410,7 +374,7 @@ footer{ padding:80px 0 50px; }
       <span class="mode-tag" id="wxMode">Hot</span>
     </div>
     <h1 class="hero-title">Your weekend, sorted by the <span class="swap">weather</span>.</h1>
-    <p class="hero-sub">WKNDR learns what you love, then re-ranks the whole city for this weekend's sky. Swipe a handful of cards — get a plan that actually fits the day.</p>
+    <p class="hero-sub">WKNDR learns what you love, then re-ranks the whole city for this weekend's sky — an ever-refreshing wall of plans that fit the day.</p>
     <div class="hero-actions">
       <a class="btn btn-accent" href="#download">Start swiping — it's free</a>
       <a class="btn btn-ghost" href="#how">See how it works</a>
@@ -418,15 +382,8 @@ footer{ padding:80px 0 50px; }
     <p class="hero-note">Free to use · Amsterdam · no account to start</p>
   </div>
 
-  <!-- cover flow of weather-tinted pick cards -->
-  <div class="coverflow" aria-hidden="true">
-    <div class="cf-stage" id="cfStage"></div>
-    <div class="cf-controls">
-      <button class="cf-btn" id="cfPrev" aria-label="Previous">‹</button>
-      <div class="cf-dots" id="cfDots"></div>
-      <button class="cf-btn" id="cfNext" aria-label="Next">›</button>
-    </div>
-  </div>
+  <!-- live bento of real weekend picks -->
+  <div class="wrap"><div class="bento" id="bento" aria-hidden="true"></div></div>
 </header>
 
 <!-- ============ SOURCE TRACE STRIP ============ -->
@@ -491,30 +448,19 @@ footer{ padding:80px 0 50px; }
       <div class="phone">
         <div class="notch"></div>
         <div class="screen">
-          <div class="swipe-badge like">Save</div>
-          <div class="deck">
-            <div class="swipecard behind2"><div class="sc-cover"><div class="g" id="dCover3"></div></div></div>
-            <div class="swipecard behind1"><div class="sc-cover"><div class="g" id="dCover2"></div></div></div>
-            <div class="swipecard front">
-              <div class="sc-cover"><div class="g" id="dCover1"></div><div class="sc-fit">Perfect for today</div></div>
-              <div class="sc-meta">
-                <div class="sc-title">Open-air jazz, Vondelpark</div>
-                <div class="sc-src">Sun 14:00 · via I amsterdam</div>
-              </div>
-            </div>
+          <div class="pl-head">
+            <div class="pl-chip"><span>🌤️</span> Warm · 19° · today</div>
+            <div class="pl-title">This weekend</div>
+            <div class="pl-sub">Ranked for the weather + your taste</div>
           </div>
-          <div class="dock">
-            <div class="b nope">✕</div>
-            <div class="b save">★</div>
-            <div class="b like">♥</div>
-          </div>
+          <div class="pl-list" id="phoneList"></div>
         </div>
       </div>
     </div>
     <div class="demo-copy">
-      <span class="eyebrow">The swipe is the point</span>
-      <h2 class="section-title">It gets you. Fast.</h2>
-      <p class="section-sub">The more you swipe, the sharper it reads you — and unlike every other events app, the weather is always in the loop.</p>
+      <span class="eyebrow">List ↔ Stack</span>
+      <h2 class="section-title">Stack it. Or list it.</h2>
+      <p class="section-sub">Same weather-ranked pool, two postures — lean back and swipe a deck, or scan a calm ranked list. Switch any time.</p>
       <div class="feat">
         <div class="fi">↔</div>
         <div><h4>List ↔ Stack, your call</h4><p>Lean back and swipe a deck, or scan a calm ranked list. Same weather-aware pool, two postures.</p></div>
@@ -619,7 +565,7 @@ footer{ padding:80px 0 50px; }
       </div>
     </div>
     <div class="foot-bottom">
-      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.3</span></div>
+      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.4</span></div>
       <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
     </div>
   </div>
@@ -651,84 +597,66 @@ const ORDER = ['HOT','WARM','COOL','COLD_WET','VOLATILE'];
 const cover = (m) => `linear-gradient(150deg, ${m.c1} 0%, ${m.c2} 55%, ${m.c3} 100%)`;
 const coverGlow = (m) => `radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;
 
-/* ---------- pick cards for the hero gallery ---------- */
+/* ---------- real content (curated from ~/Code/wkndr app/src/data/picks.ts, weekend 5–7 Jun) ---------- */
 const PICKS = [
-  { t:'Canal swim at Marineterrein',   src:'I amsterdam',        fit:'HOT' },
-  { t:'Techno all-nighter, Shelter',   src:'Resident Advisor',   fit:'COLD_WET' },
-  { t:'Open-air jazz, Vondelpark',     src:'I amsterdam',        fit:'WARM' },
-  { t:'Foam late-night photography',   src:'Time Out',           fit:'COLD_WET' },
-  { t:'Pancake boat with the kids',    src:'Kidsproof',          fit:'WARM' },
-  { t:'Sunrise run along the Amstel',  src:'Strava clubs',       fit:'COOL' },
-  { t:'Natural-wine terrace, De Pijp', src:'Little Black Book',  fit:'HOT' },
-  { t:'Paradiso — Sunday session',     src:'Paradiso',           fit:'VOLATILE' },
-  { t:'Noordermarkt + flat white',     src:'Welike Amsterdam',   fit:'COOL' },
-  { t:'Silent boat through the Jordaan',src:'I amsterdam',       fit:'WARM' },
-  { t:'Stedelijk: new wing opening',   src:'Stedelijk',          fit:'COLD_WET' },
-  { t:'Muiderslot medieval days',      src:'Kidsproof',          fit:'WARM' },
-  { t:'Rooftop cinema, NDSM',          src:'Time Out',           fit:'HOT' },
-  { t:'Foraging walk, Amsterdamse Bos',src:'Mommy Poppins',      fit:'COOL' },
-  { t:'Eye Filmmuseum double bill',    src:'Eye',                fit:'VOLATILE' },
+  {t:'FKA twigs + Yves Tumor', v:'Ziggo Dome · Zuidoost', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/7413669/huge_avatar', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Red Light Jazz Festival', v:'De Wallen · Centrum', when:'Fri–Sun 5–7 Jun', cat:'Live & gigs', src:'I amsterdam', img:'https://redlightjazz.com/wp-content/uploads/2025/05/sabrina-starke-at-red-light-jazz-uitgelicht.webp', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Jungle by Night', v:'Vondelpark Openluchttheater', when:'Sun 7 Jun · free', cat:'Live & gigs', src:'Songkick', img:'https://upload.wikimedia.org/wikipedia/commons/c/c2/Jungle_by_Night.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Noordermarkt', v:'Noordermarkt square · Jordaan', when:'Sat 6 Jun · 09:00', cat:'Markets', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/66791e9931e55c556280c599/1800x1020.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Sunday Market — Westergas', v:'Westergasfabriek · West', when:'Sun 7 Jun · 12:00', cat:'Markets', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/60913a7a5e56be4386f24851/sunday%20market%20westergas.webp', fit:['HOT','WARM','COOL']},
+  {t:'Zaanse Schans windmills', v:'Zaandam · 17 min', when:'Daily', cat:'Day-trip', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Beautiful-windmills-at-Zaanse-Schans-daytrip-near-Amsterdam-Holland-Netherlands.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Foodhallen', v:'De Hallen · West', when:'Daily · 11:00', cat:'Eat', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg/1280px-Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Eye Filmmuseum', v:'Eye · Noord', when:'Daily', cat:'Stage & screen', src:'Eye programme', img:'https://assets.eyefilm.nl/images/_1200x630_crop_center-center_none/Foto-EYE-Marcus-Koppen-bijgesneden-2_2021-04-12-140514.jpeg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Pllek — waterfront hang', v:'NDSM · Noord', when:'Daily · lunch–late', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Wynand Fockink jenever', v:'Centrum', when:'Daily · 14:00', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Wynand_Focking_Amsterdam_2014_%284%29.jpg/1280px-Wynand_Focking_Amsterdam_2014_%284%29.jpg', fit:['COOL','COLD_WET','VOLATILE']},
 ];
-const fitLabel = { HOT:'Best when hot', WARM:'Best when warm', COOL:'Best when cool', COLD_WET:'Best on a wet day', VOLATILE:'Backup-plan ready' };
-
-function pickCard(p){
-  const m = MODES[p.fit];
-  return `<article class="pick">
-    <div class="cover"><div class="g" style="background:${coverGlow(m)}"></div><span class="fitpill">${fitLabel[p.fit]}</span></div>
-    <div class="meta">
-      <div class="ptitle">${p.t}</div>
-      <div class="psrc">via <span class="src">${p.src}</span></div>
-    </div>
-  </article>`;
+function fitPill(fit){
+  const wet=fit.includes('COLD_WET'),hot=fit.includes('HOT'),warm=fit.includes('WARM'),cool=fit.includes('COOL');
+  if(hot&&wet) return 'Rain or shine';
+  if(hot) return 'Best when sunny';
+  if(warm&&!wet) return 'Best when warm';
+  if(wet) return 'Best on a wet day';
+  if(cool) return 'Best when cool';
+  return 'Any weather';
 }
-/* ---------- hero cover flow ---------- */
+const coverBg = (fit)=> coverGlow(MODES[fit[0]]);
+function pcardInner(p){
+  return `<div class="cover"><div class="g" style="background:${coverBg(p.fit)}"></div><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.remove()" alt=""><div class="grad"></div></div>
+    <span class="fitpill">${fitPill(p.fit)}</span>
+    <div class="info"><div class="t">${p.t}</div><div class="m">${p.v} · ${p.when}</div></div>`;
+}
+
+/* ---------- hero bento + live flip-refresh movement (the pool re-ranks in real time) ---------- */
 const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-// curated 9, ordered so no two same-weather cards sit adjacent (incl. loop wrap)
-const CF = [PICKS[0],PICKS[1],PICKS[5],PICKS[6],PICKS[2],PICKS[10],PICKS[12],PICKS[8],PICKS[7]];
-const cfStage = document.getElementById('cfStage');
-cfStage.innerHTML = CF.map((p,i)=>`<div class="cf-item" data-i="${i}">${pickCard(p)}</div>`).join('');
-const cfItems = [...cfStage.querySelectorAll('.cf-item')];
-const CFN = cfItems.length;
-let cfActive = 0;
+const BENTO_LAYOUT = ['feat','','','tall','tall','',''];   // feat = 2×2, tall = 2 rows
+const bentoEl = document.getElementById('bento');
+let shown = PICKS.slice(0, BENTO_LAYOUT.length);
+let bench = PICKS.slice(BENTO_LAYOUT.length);
+bentoEl.innerHTML = shown.map((p,i)=>`<article class="pcard ${BENTO_LAYOUT[i]}">${pcardInner(p)}</article>`).join('');
+const tiles = [...bentoEl.querySelectorAll('.pcard')];
 
-const cfDots = document.getElementById('cfDots');
-cfDots.innerHTML = CF.map((_,i)=>`<button class="cf-dot" data-i="${i}" aria-label="Card ${i+1}"></button>`).join('');
-const cfDotEls = [...cfDots.querySelectorAll('.cf-dot')];
-
-const cfStep = () => (cfItems[0]?.offsetWidth || 300) * 0.54;
-function cfLayout(){
-  const S = cfStep();
-  cfItems.forEach((el,i)=>{
-    let off = i - cfActive;
-    if(off >  CFN/2) off -= CFN;          // wrap to nearest — flows as a loop
-    if(off < -CFN/2) off += CFN;
-    const a = Math.abs(off), sign = Math.sign(off);
-    const scale = Math.max(0.62, 1 - a*0.15);
-    const rotY  = -sign * Math.min(a,3) * 26;
-    const op    = a > 2.5 ? 0 : 1 - a*0.2;
-    el.style.transform = `translateX(calc(-50% + ${off*S}px)) rotateY(${rotY}deg) scale(${scale})`;
-    el.style.zIndex = String(100 - Math.round(a*10));
-    el.style.opacity = String(Math.max(0, op));
-    el.style.pointerEvents = a > 2.5 ? 'none' : 'auto';
-    el.classList.toggle('is-active', off === 0);
-  });
-  cfDotEls.forEach((d,i)=> d.classList.toggle('on', i === cfActive));
+let flipTimer = null;
+function flipRandomTile(){
+  if(!bench.length) return;
+  const idx = Math.floor(Math.random() * tiles.length);
+  const el = tiles[idx];
+  const incoming = bench.shift();
+  bench.push(shown[idx]);
+  shown[idx] = incoming;
+  el.style.transition = 'transform .34s ease-in';
+  el.style.transform = 'rotateY(90deg)';
+  setTimeout(()=>{
+    el.innerHTML = pcardInner(incoming);
+    el.style.transition = 'transform .34s ease-out';
+    el.style.transform = 'rotateY(0deg)';
+    setTimeout(()=>{ el.style.transition=''; el.style.transform=''; }, 360);
+  }, 340);
 }
-const cfGo = (i) => { cfActive = (i % CFN + CFN) % CFN; cfLayout(); };
-cfItems.forEach((el,i)=> el.addEventListener('click', ()=> cfGo(i)));
-cfDotEls.forEach((d,i)=> d.addEventListener('click', ()=> cfGo(i)));
-document.getElementById('cfPrev').addEventListener('click', ()=> cfGo(cfActive-1));
-document.getElementById('cfNext').addEventListener('click', ()=> cfGo(cfActive+1));
-window.addEventListener('resize', cfLayout);
-cfLayout();
-
-let cfTimer = null;
-const cfStop = () => { if(cfTimer){ clearInterval(cfTimer); cfTimer = null; } };
-const cfPlay = () => { if(prefersReduce) return; cfStop(); cfTimer = setInterval(()=> cfGo(cfActive+1), 2900); };
-const cfEl = document.querySelector('.coverflow');
-cfEl.addEventListener('mouseenter', cfStop);
-cfEl.addEventListener('mouseleave', cfPlay);
-cfPlay();
+const bentoStop = ()=>{ if(flipTimer){ clearInterval(flipTimer); flipTimer=null; } };
+const bentoPlay = ()=>{ if(prefersReduce) return; bentoStop(); flipTimer = setInterval(flipRandomTile, 2200); };
+bentoEl.addEventListener('mouseenter', bentoStop);
+bentoEl.addEventListener('mouseleave', bentoPlay);
+bentoPlay();
 
 /* ---------- weather mode cards ---------- */
 document.getElementById('modeGrid').innerHTML = ORDER.map(k=>{
@@ -764,10 +692,10 @@ document.getElementById('catGrid').innerHTML = CATS.map(c=>
   `<div class="cat"><div class="cemoji">${c[0]}</div><h4>${c[1]}</h4><p>${c[2]}</p></div>`
 ).join('');
 
-/* ---------- demo phone covers ---------- */
-document.getElementById('dCover1').style.background = coverGlow(MODES.WARM);
-document.getElementById('dCover2').style.background = coverGlow(MODES.HOT);
-document.getElementById('dCover3').style.background = coverGlow(MODES.COOL);
+/* ---------- demo phone: this-weekend list ---------- */
+document.getElementById('phoneList').innerHTML = PICKS.slice(0,5).map(p=>
+  `<div class="pl-row"><div class="th"><div class="g" style="background:${coverBg(p.fit)}"></div><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.remove()" alt=""></div><div class="tx"><div class="t">${p.t}</div><div class="v">${p.v}</div></div><div class="pf">${fitPill(p.fit)}</div></div>`
+).join('');
 
 /* ---------- FAQ ---------- */
 const FAQ = [

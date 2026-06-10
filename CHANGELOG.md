@@ -7,6 +7,18 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.4 — 2026-06-10
+- Replaced the cover-flow hero with a **live bento gallery** (the chosen "A" direction):
+  an editorial grid of real weekend picks that introduces **movement** — every ~2.2s a
+  random tile flips (3D rotateY) to a fresh pick from the pool, so the wall visibly
+  re-ranks in real time. Pauses on hover; respects reduced-motion.
+- Pulled **real app content** from `~/Code/wkndr` (FKA twigs, Red Light Jazz, Jungle by
+  Night, Noordermarkt, Zaanse Schans…) with real images and source credits; BEST WHEN
+  pills now derive from each pick's `weatherFit`.
+- **Reduced the nav** to a compact pill that hugs its content (was full-width).
+- Converted the lower phone demo from a second swipe deck to the **List view**, so the
+  page shows the stack→list duality it describes instead of two decks.
+
 ## v1.3 — 2026-06-09
 - Replaced the hero's auto-scrolling marquee with a **3D cover flow**: a finite, centered,
   viewport-independent carousel (the marquee's looping seam showed on wide screens because
