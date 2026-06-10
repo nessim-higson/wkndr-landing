@@ -7,6 +7,16 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.6 — 2026-06-10
+- Reverted the source strip back to plain **type wordmarks** (dropped the monogram chips).
+- **Fixed mirror-reversed text mid-flip**: an `overflow:hidden` perspective parent (`.pcard`)
+  was flattening the 3D context, so `backface-visibility` was ignored and the hidden face
+  showed through backwards. Moved the clip/border/radius onto the faces; `.pcard` is now
+  `overflow:visible`, so the flip hides its backface correctly.
+- **More varied content**: expanded the real-pick pool from 10 → 19 (Amsterdam Open Air,
+  909 Festival, Samora Pinderhughes, MCDE, Moeders, Haarlem, Sauna Deco, Amsterdam Sevens,
+  Tony's), so the 12-deep bench keeps the flips genuinely fresh.
+
 ## v1.5 — 2026-06-10
 - **Finessed the bento movement**: replaced the rudimentary single-element 90° content
   swap with a real **two-faced card flip** (front/back faces, 180° rotateY) — eased

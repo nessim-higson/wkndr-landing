@@ -148,11 +148,13 @@ h1 .swap{ color:var(--accent); }
 
 /* hero bento — editorial grid of real picks, with live flip-refresh movement */
 .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:168px; gap:14px; margin-top:clamp(36px,5vw,54px); position:relative; z-index:2; }
-.pcard{ position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transition:box-shadow .55s cubic-bezier(.45,.05,.25,1); perspective:1150px; }
+.pcard{ position:relative; border-radius:18px; box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transition:box-shadow .55s cubic-bezier(.45,.05,.25,1); perspective:1150px; }
 .pcard:hover{ box-shadow:0 24px 46px -22px rgba(0,0,0,.52); }
 .pcard.lift{ z-index:6; box-shadow:0 48px 82px -34px rgba(0,0,0,.62); }
 .flip{ position:absolute; inset:0; transform-style:preserve-3d; will-change:transform; }
-.face{ position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+/* clip + border live on the FACES, not the .pcard — an overflow:hidden perspective parent
+   flattens the 3D context and makes the hidden face show through mirror-reversed */
+.face{ position:absolute; inset:0; border-radius:18px; overflow:hidden; border:1px solid var(--line); background:var(--card); backface-visibility:hidden; -webkit-backface-visibility:hidden; }
 .face.back{ transform:rotateY(180deg); }
 .pcard .cover{ position:absolute; inset:0; }
 .pcard .cover .g{ position:absolute; inset:0; z-index:0; }
@@ -192,10 +194,10 @@ h1 .swap{ color:var(--accent); }
    ============================================================ */
 .sources{ padding:46px 0 6px; text-align:center; }
 .sources .lbl{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
-.sources .strip{ margin-top:24px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:12px 14px; }
-.srclogo{ display:inline-flex; align-items:center; gap:9px; padding:8px 15px 8px 9px; border:1px solid var(--line); border-radius:100px; background:var(--card); font-size:14px; font-weight:600; color:var(--ink-2); letter-spacing:-.01em; opacity:.82; transition:opacity .2s ease, transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
-.srclogo:hover{ opacity:1; transform:translateY(-2px); border-color:var(--ink-3); box-shadow:0 8px 18px -12px rgba(0,0,0,.3); }
-.srclogo .mk{ width:26px; height:26px; flex:0 0 auto; border-radius:8px; background:linear-gradient(135deg,#2a2a26,#000); color:#fff; display:grid; place-items:center; font-size:10.5px; font-weight:800; letter-spacing:.02em; }
+.sources .strip{
+  margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:14px 40px;
+  font-size:17px; font-weight:600; color:var(--ink-2); opacity:.72; letter-spacing:-.01em;
+}
 
 /* ============================================================
    HOW IT WORKS — 3 steps
@@ -395,15 +397,9 @@ footer{ padding:80px 0 50px; }
   <div class="wrap">
     <div class="lbl">Reads the whole city, names its sources</div>
     <div class="strip">
-      <span class="srclogo"><span class="mk">B</span>Buienradar</span>
-      <span class="srclogo"><span class="mk">KN</span>KNMI</span>
-      <span class="srclogo"><span class="mk">RA</span>Resident Advisor</span>
-      <span class="srclogo"><span class="mk">I</span>I amsterdam</span>
-      <span class="srclogo"><span class="mk">P</span>Paradiso</span>
-      <span class="srclogo"><span class="mk">TO</span>Time Out</span>
-      <span class="srclogo"><span class="mk">S</span>Songkick</span>
-      <span class="srclogo"><span class="mk">K</span>Kidsproof</span>
-      <span class="srclogo"><span class="mk">LBB</span>Little Black Book</span>
+      <span>Buienradar</span><span>Resident Advisor</span><span>I amsterdam</span>
+      <span>Paradiso</span><span>Time Out</span><span>Songkick</span>
+      <span>Kidsproof</span><span>Little Black Book</span><span>KNMI</span>
     </div>
   </div>
 </div>
@@ -575,7 +571,7 @@ footer{ padding:80px 0 50px; }
       </div>
     </div>
     <div class="foot-bottom">
-      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.5</span></div>
+      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.6</span></div>
       <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
     </div>
   </div>
@@ -619,6 +615,15 @@ const PICKS = [
   {t:'Eye Filmmuseum', v:'Eye · Noord', when:'Daily', cat:'Stage & screen', src:'Eye programme', img:'https://assets.eyefilm.nl/images/_1200x630_crop_center-center_none/Foto-EYE-Marcus-Koppen-bijgesneden-2_2021-04-12-140514.jpeg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
   {t:'Pllek — waterfront hang', v:'NDSM · Noord', when:'Daily · lunch–late', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE']},
   {t:'Wynand Fockink jenever', v:'Centrum', when:'Daily · 14:00', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Wynand_Focking_Amsterdam_2014_%284%29.jpg/1280px-Wynand_Focking_Amsterdam_2014_%284%29.jpg', fit:['COOL','COLD_WET','VOLATILE']},
+  {t:'Amsterdam Open Air', v:'Gaasperpark · Zuidoost', when:'Sat–Sun 6–7 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.unsplash.com/photo-1761926826313-a1787661b7b6?w=1200&q=80', fit:['HOT','WARM']},
+  {t:'909 Festival', v:'Amsterdamse Bos · Amstelveen', when:'Sat–Sun 6–7 Jun', cat:'Live & gigs', src:'I amsterdam', img:'https://framerusercontent.com/assets/zKisd6fZKSwFKx4QHS96VbG1XI.jpg', fit:['HOT','WARM']},
+  {t:'Samora Pinderhughes', v:'Bimhuis · Oosterdok', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/8574519/huge_avatar', fit:['COOL','COLD_WET','VOLATILE']},
+  {t:'Motor City Drum Ensemble', v:'NDSM · Noord', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://www.attackmagazine.com/wp-content/uploads/2012/09/6_MCDE_by_Stefan_Braunbarth.png', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Moeders — Dutch home cooking', v:'Jordaan · dinner', when:'Daily', cat:'Eat', src:'Het Parool', img:'https://images.unsplash.com/photo-1723511413901-99439b957bbf?w=1200&q=80', fit:['COOL','COLD_WET','VOLATILE']},
+  {t:'Haarlem — the easy escape', v:'15 min by train', when:'Daily · Sat market', cat:'Day-trip', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Amsterdam-5-scaled-e1649411586356.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Sauna Deco — Art Deco baths', v:'Centrum', when:'Daily · 12:00', cat:'Out & about', src:'I amsterdam', img:'https://images.unsplash.com/photo-1757940556610-a114be4733bf?w=1200&q=80', fit:['COOL','COLD_WET','VOLATILE']},
+  {t:'Amsterdam Sevens Rugby', v:'Sportpark de Eendracht · West', when:'Sat–Sun 6–7 Jun', cat:'Out & about', src:'I amsterdam', img:'https://media.iamsterdam.com/w_1080/69yh4j7g2d4u-rtxp.jpg', fit:['HOT','WARM']},
+  {t:'Tony’s Chocolonely Store', v:'West', when:'Daily · 10:00', cat:'Eat', src:'Kidsproof', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Tony%27s_Chocolonely_shop_Amsterdam.jpg/1280px-Tony%27s_Chocolonely_shop_Amsterdam.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
 ];
 function fitPill(fit){
   const wet=fit.includes('COLD_WET'),hot=fit.includes('HOT'),warm=fit.includes('WARM'),cool=fit.includes('COOL');
