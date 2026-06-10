@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WKNDR — real-time shuffle (concept)</title>
+<style>
+:root{ --ink:#0e0e0c; --ink-2:#54534d; --ink-3:#8b8a82; --paper:#faf8f3; --card:#fff; --line:#e7e3d8; --accent:#ff4d1f;
+  --field-1:#ff9a3d; --field-2:#c2310e; --field-glow:#ffd166; }
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ font-family:"Helvetica Neue",Helvetica,-apple-system,Arial,sans-serif; background:var(--paper); color:var(--ink); line-height:1.45; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+a{ color:inherit; text-decoration:none; }
+.btn{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none; font-size:14px; font-weight:600; padding:12px 20px; border-radius:100px; }
+.btn-accent{ background:var(--accent); color:#fff; box-shadow:0 8px 22px -10px rgba(255,77,31,.8); }
+.btn-ghost{ background:transparent; border:1.5px solid var(--line); }
+
+/* compact nav */
+nav{ position:fixed; top:16px; left:0; right:0; z-index:200; display:flex; justify-content:center; pointer-events:none; }
+.nav-pill{ pointer-events:auto; display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.8); backdrop-filter:saturate(180%) blur(18px); -webkit-backdrop-filter:saturate(180%) blur(18px); border:1px solid rgba(231,227,216,.9); border-radius:100px; padding:7px 7px 7px 18px; box-shadow:0 10px 30px -16px rgba(0,0,0,.28); }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; letter-spacing:-.04em; }
+.brand .dot{ width:11px; height:11px; border-radius:50%; background:conic-gradient(from 200deg,#ff9a3d,#ffd166,#c2310e,#ff9a3d); box-shadow:0 0 0 3px rgba(255,255,255,.6); }
+.nav-links{ display:flex; gap:22px; font-size:13.5px; font-weight:500; color:var(--ink-2); margin:0 14px 0 18px; }
+.nav-pill .btn{ padding:9px 17px; font-size:13.5px; }
+@media (max-width:680px){ .nav-links{ display:none; } }
+
+.hero{ min-height:100vh; display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:40px; width:min(1160px,92vw); margin:0 auto; padding-top:90px; }
+.copy .tag{ font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
+h1{ font-size:clamp(38px,5.4vw,68px); font-weight:700; letter-spacing:-.045em; line-height:1.0; margin-top:16px; }
+h1 .swap{ color:var(--accent); }
+.copy p{ font-size:clamp(16px,1.5vw,19px); color:var(--ink-2); max-width:40ch; margin-top:18px; }
+.acts{ display:flex; gap:12px; margin-top:26px; flex-wrap:wrap; }
+
+/* shuffling deck */
+.deck{ position:relative; height:520px; perspective:1400px; }
+.shuf{
+  position:absolute; top:50%; left:50%; width:min(300px,82vw); margin:-186px 0 0 -150px;
+  border-radius:22px; overflow:hidden; background:var(--card); border:1px solid var(--line);
+  box-shadow:0 26px 54px -28px rgba(0,0,0,.55);
+  transition:transform .8s cubic-bezier(.4,.05,.2,1), filter .8s ease, box-shadow .8s ease;
+  will-change:transform;
+}
+.shuf .cover{ height:268px; position:relative; overflow:hidden; }
+.shuf .cover .g{ position:absolute; inset:0; z-index:0; }
+.shuf .cover img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+.shuf .cover .grad{ position:absolute; inset:0; z-index:2; background:linear-gradient(to top, rgba(0,0,0,.36), transparent 52%); }
+.shuf .fitpill{ position:absolute; top:13px; left:13px; z-index:3; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:rgba(255,255,255,.93); color:var(--ink); padding:5px 10px; border-radius:100px; backdrop-filter:blur(4px); }
+.shuf .meta{ padding:14px 16px 15px; }
+.shuf .meta .t{ font-size:17px; font-weight:700; letter-spacing:-.02em; line-height:1.14; }
+.shuf .meta .v{ font-size:12px; color:var(--ink-3); margin-top:6px; }
+@media (max-width:880px){ .hero{ grid-template-columns:1fr; gap:20px; text-align:center; } .copy .acts{ justify-content:center; } .copy p{ margin-left:auto; margin-right:auto; } .deck{ height:480px; } }
+
+.note{ width:min(1160px,92vw); margin:0 auto 70px; padding:22px 24px; background:var(--card); border:1px solid var(--line); border-radius:18px; font-size:14.5px; color:var(--ink-2); }
+.note b{ color:var(--ink); }
+</style>
+</head>
+<body>
+<nav><div class="nav-pill">
+  <a class="brand" href="index.html"><span class="dot"></span> WKNDR</a>
+  <div class="nav-links"><a href="index.html">Bento (live)</a><a href="alternatives.html">All options</a></div>
+  <a class="btn btn-accent" href="#">Open WKNDR</a>
+</div></nav>
+
+<section class="hero">
+  <div class="copy">
+    <div class="tag">Concept · real-time shuffle</div>
+    <h1>The weekend, <span class="swap">shuffling</span> itself.</h1>
+    <p>A living deck of real Amsterdam picks that keeps re-dealing — the pool re-ranking in front of you, BEST WHEN pills and all. Hover to pause.</p>
+    <div class="acts">
+      <a class="btn btn-accent" href="#">Start swiping — it's free</a>
+      <a class="btn btn-ghost" href="index.html">← Back to the bento</a>
+    </div>
+  </div>
+  <div class="deck" id="deck"></div>
+</section>
+
+<div class="note"><b>What you're looking at:</b> the same real content as the bento, but presented as a continuously shuffling pile instead of a grid. Each tick a card deals out and tucks behind, and the whole stack re-settles. If you like this better than the bento — or want a hybrid (shuffle in the hero, bento below) — say the word and I'll ship it as the next version.</div>
+
+<script>
+const MODES = {
+  HOT:{c1:'#ff9a3d',c2:'#c2310e',c3:'#5a1606',glow:'#ffd166'}, WARM:{c1:'#d8e08a',c2:'#6fa24a',c3:'#2c4a26',glow:'#fff0b0'},
+  COOL:{c1:'#9fc0b8',c2:'#4a716b',c3:'#1e3433',glow:'#cfe6df'}, COLD_WET:{c1:'#6c7e9c',c2:'#313f5e',c3:'#121a2e',glow:'#9fb2cc'},
+  VOLATILE:{c1:'#e08a4a',c2:'#7a5a7a',c3:'#2a3358',glow:'#ffcf8a'},
+};
+const coverGlow = (m)=>`radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;
+const coverBg = (fit)=> coverGlow(MODES[fit[0]]);
+function fitPill(fit){ const wet=fit.includes('COLD_WET'),hot=fit.includes('HOT'),warm=fit.includes('WARM'),cool=fit.includes('COOL');
+  if(hot&&wet) return 'Rain or shine'; if(hot) return 'Best when sunny'; if(warm&&!wet) return 'Best when warm'; if(wet) return 'Best on a wet day'; if(cool) return 'Best when cool'; return 'Any weather'; }
+
+const PICKS = [
+  {t:'FKA twigs + Yves Tumor', v:'Ziggo Dome · Sat 6 Jun', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/7413669/huge_avatar', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Red Light Jazz Festival', v:'De Wallen · Fri–Sun', src:'I amsterdam', img:'https://redlightjazz.com/wp-content/uploads/2025/05/sabrina-starke-at-red-light-jazz-uitgelicht.webp', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Jungle by Night', v:'Vondelpark · Sun 7 Jun', src:'Songkick', img:'https://upload.wikimedia.org/wikipedia/commons/c/c2/Jungle_by_Night.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Noordermarkt', v:'Jordaan · Sat 09:00', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/66791e9931e55c556280c599/1800x1020.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Zaanse Schans windmills', v:'Zaandam · 17 min', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Beautiful-windmills-at-Zaanse-Schans-daytrip-near-Amsterdam-Holland-Netherlands.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Foodhallen', v:'De Hallen · daily', src:'Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg/1280px-Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Pllek — waterfront', v:'NDSM · Noord', src:'Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+];
+
+const deck = document.getElementById('deck');
+deck.innerHTML = PICKS.map(p=>`<div class="shuf"><div class="cover"><div class="g" style="background:${coverBg(p.fit)}"></div><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.remove()" alt=""><div class="grad"></div><span class="fitpill">${fitPill(p.fit)}</span></div><div class="meta"><div class="t">${p.t}</div><div class="v">via ${p.src}</div></div></div>`).join('');
+const cards = [...deck.querySelectorAll('.shuf')];
+const N = cards.length;
+const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// deterministic-ish jitter per (card, tick) so each settle looks freshly shuffled
+let order = cards.map((_,i)=>i);   // order[0] = back ... order[N-1] = front
+function rnd(seed){ let t=seed*2654435761>>>0; t=Math.imul(t^(t>>>15),1|t); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }
+let tick=0;
+function settle(dealing){
+  cards.forEach((el,i)=>{
+    const pos = order.indexOf(i);            // 0 back … N-1 front
+    const depth = (N-1) - pos;               // 0 = front card
+    const r = (k)=> rnd(i*97 + tick*131 + k);
+    const x = (r(1)*2-1)*30;
+    const y = (r(2)*2-1)*18 + depth*3;
+    const rot = (r(3)*2-1)*8;
+    let tf = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${(1-depth*0.014).toFixed(3)})`;
+    // the card being dealt swings out wide then will tuck to the back next tick
+    if(dealing && i===dealing.id) tf = `translate(${dealing.dir*150}px, -36px) rotate(${dealing.dir*16}deg) scale(1.02)`;
+    el.style.transform = tf;
+    el.style.zIndex = String(pos + (dealing && i===dealing.id ? 100 : 0));
+    el.style.filter = `brightness(${(1-depth*0.022).toFixed(3)})`;
+  });
+}
+settle(null);
+
+let timer=null, dir=1;
+function step(){
+  const frontId = order[N-1];
+  dir = -dir;
+  settle({id:frontId, dir});           // deal the front card out to the side
+  setTimeout(()=>{
+    order.pop(); order.unshift(frontId); // move it to the back
+    tick++;
+    settle(null);                        // whole pile re-settles, freshly shuffled
+  }, 420);
+}
+function play(){ if(prefersReduce) return; stop(); timer=setInterval(step, 1600); }
+function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+deck.addEventListener('mouseenter', stop);
+deck.addEventListener('mouseleave', play);
+play();
+</script>
+</body>
+</html>
