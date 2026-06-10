@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WKNDR — 4 new opening modules (for fun)</title>
+<style>
+:root{ --ink:#0e0e0c; --ink-2:#54534d; --ink-3:#8b8a82; --paper:#faf8f3; --card:#fff; --line:#e7e3d8; --accent:#ff4d1f; }
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ font-family:"Helvetica Neue",Helvetica,-apple-system,Arial,sans-serif; background:var(--paper); color:var(--ink); line-height:1.45; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+a{ color:inherit; text-decoration:none; }
+.mono{ font-family:"JetBrains Mono",ui-monospace,Menlo,monospace; }
+.wrap{ width:min(1160px,92vw); margin:0 auto; }
+.btn{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none; font-size:14px; font-weight:600; padding:12px 20px; border-radius:100px; }
+.btn-accent{ background:var(--accent); color:#fff; box-shadow:0 8px 22px -10px rgba(255,77,31,.8); }
+
+/* compact nav */
+nav{ position:fixed; top:16px; left:0; right:0; z-index:300; display:flex; justify-content:center; pointer-events:none; }
+.nav-pill{ pointer-events:auto; display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.8); backdrop-filter:saturate(180%) blur(18px); -webkit-backdrop-filter:saturate(180%) blur(18px); border:1px solid rgba(231,227,216,.9); border-radius:100px; padding:7px 7px 7px 18px; box-shadow:0 10px 30px -16px rgba(0,0,0,.28); }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; letter-spacing:-.04em; }
+.brand .dot{ width:11px; height:11px; border-radius:50%; background:conic-gradient(from 200deg,#ff9a3d,#ffd166,#c2310e,#ff9a3d); box-shadow:0 0 0 3px rgba(255,255,255,.6); }
+.nav-links{ display:flex; gap:20px; font-size:13.5px; font-weight:500; color:var(--ink-2); margin:0 12px 0 16px; }
+.nav-pill .btn{ padding:9px 17px; font-size:13.5px; }
+@media (max-width:680px){ .nav-links{ display:none; } }
+
+/* label band */
+.variant-head{ border-top:1px dashed var(--line); }
+.variant-head .wrap{ display:flex; align-items:baseline; gap:14px; padding:54px 0 0; flex-wrap:wrap; }
+.variant-tag{ font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700; color:#fff; background:var(--ink); padding:5px 11px; border-radius:7px; }
+.variant-title{ font-size:21px; font-weight:700; letter-spacing:-.025em; }
+.variant-note{ font-size:14px; color:var(--ink-3); }
+section.module{ padding:30px 0 80px; }
+.intro{ text-align:center; padding:118px 0 4px; }
+.intro .k{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:700; }
+.intro h1{ font-size:clamp(34px,5vw,60px); font-weight:700; letter-spacing:-.04em; margin-top:14px; }
+.intro h1 .swap{ color:var(--accent); }
+
+/* ================= E — DEPARTURE BOARD ================= */
+.board{ background:#14120d; border-radius:22px; overflow:hidden; box-shadow:0 40px 80px -50px rgba(0,0,0,.7); border:1px solid #2a261c; }
+.board-head{ display:flex; justify-content:space-between; align-items:center; padding:18px 24px; background:#0e0c08; color:#f3c34d; font-family:"JetBrains Mono",monospace; font-size:13px; letter-spacing:.12em; border-bottom:1px solid #2a261c; }
+.board-head .bh-r{ color:#7a7464; }
+.brow{ display:grid; grid-template-columns:96px 1fr 200px 150px; gap:18px; align-items:center; padding:15px 24px; border-bottom:1px solid #211d15; font-family:"JetBrains Mono",monospace; }
+.brow:last-child{ border-bottom:none; }
+.brow .c-time{ color:#f3c34d; font-size:18px; font-weight:700; letter-spacing:.04em; }
+.brow .c-evt{ color:#f4efe2; font-size:16px; font-weight:700; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.brow .c-area{ color:#9a937f; font-size:12.5px; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.brow .c-fit{ justify-self:end; }
+.brow .c-fit i{ font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.05em; color:#14120d; background:#f3c34d; padding:5px 10px; border-radius:5px; white-space:nowrap; }
+.brow .c-fit.wet i{ background:#8fb3d9; } .brow .c-fit.any i{ background:#cfc9b8; } .brow .c-fit.cool i{ background:#9fc7bd; }
+@media (max-width:760px){ .brow{ grid-template-columns:64px 1fr; } .brow .c-area,.brow .c-fit{ display:none; } }
+
+/* ================= F — SCATTERED POSTCARDS ================= */
+.desk{ position:relative; height:560px; }
+.postcard{ position:absolute; width:230px; background:#fff; padding:10px 10px 0; border-radius:4px; box-shadow:0 18px 36px -18px rgba(0,0,0,.45); transform:rotate(var(--r)) translateY(0); transition:transform .35s cubic-bezier(.3,.8,.3,1), box-shadow .35s, z-index 0s; animation:bob 7s ease-in-out infinite; animation-delay:var(--d); }
+.postcard:hover{ transform:rotate(0deg) translateY(-10px) scale(1.05); box-shadow:0 30px 50px -18px rgba(0,0,0,.5); z-index:50 !important; }
+@keyframes bob{ 0%,100%{ margin-top:0; } 50%{ margin-top:-12px; } }
+.postcard .tape{ position:absolute; top:-12px; left:50%; transform:translateX(-50%) rotate(-3deg); width:78px; height:24px; background:rgba(214,199,140,.55); border:1px solid rgba(180,165,110,.4); }
+.postcard .photo{ position:relative; height:158px; border-radius:2px; overflow:hidden; }
+.postcard .photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.postcard .stamp{ position:absolute; top:8px; right:8px; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#7a2718; border:2px solid #7a2718; border-radius:4px; padding:3px 6px; transform:rotate(7deg); background:rgba(255,255,255,.82); }
+.postcard .cap{ padding:11px 6px 13px; font-size:15px; font-weight:700; letter-spacing:-.02em; line-height:1.2; }
+.postcard .cap i{ display:block; font-style:normal; font-size:11.5px; font-weight:500; color:var(--ink-3); margin-top:3px; }
+
+/* ================= G — CANAL MAP + PINS ================= */
+.map{ position:relative; height:520px; background:linear-gradient(160deg,#eef3f1,#f7f4ee); border:1px solid var(--line); border-radius:22px; overflow:hidden; }
+.map .canals{ position:absolute; inset:0; width:100%; height:100%; }
+.map .canals path{ fill:none; stroke:#bcd0cf; stroke-width:2.5; }
+.map .canals .water{ stroke:#9fc0d6; stroke-width:6; opacity:.5; }
+.pin{ position:absolute; transform:translate(-50%,-100%); cursor:pointer; z-index:2; }
+.pin .dot{ width:16px; height:16px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); background:var(--accent); box-shadow:0 4px 8px -2px rgba(0,0,0,.4); border:2px solid #fff; }
+.pin.on .dot{ background:var(--ink); animation:none; }
+.pin .dot::after{ content:""; position:absolute; inset:4px; border-radius:50%; background:#fff; transform:rotate(45deg); }
+.pin .ping{ position:absolute; left:50%; top:0; width:16px; height:16px; border-radius:50%; transform:translate(-50%,-2px); border:2px solid var(--accent); animation:ping 2.4s ease-out infinite; }
+@keyframes ping{ 0%{ transform:translate(-50%,-2px) scale(.6); opacity:.7; } 100%{ transform:translate(-50%,-2px) scale(3.2); opacity:0; } }
+.callout{ position:absolute; z-index:5; width:248px; background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 24px 44px -22px rgba(0,0,0,.45); transition:opacity .3s, transform .3s; }
+.callout .ph{ height:124px; position:relative; } .callout .ph img{ width:100%; height:100%; object-fit:cover; }
+.callout .fit{ position:absolute; top:10px; left:10px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; background:rgba(255,255,255,.93); padding:4px 9px; border-radius:100px; }
+.callout .m{ padding:12px 14px 14px; } .callout .m .t{ font-size:16px; font-weight:700; letter-spacing:-.02em; } .callout .m .v{ font-size:12px; color:var(--ink-3); margin-top:5px; }
+@media (max-width:680px){ .callout{ width:210px; } }
+
+/* ================= H — MAGAZINE COVER ================= */
+.mag{ position:relative; width:100%; aspect-ratio:3/4; max-height:600px; border-radius:18px; overflow:hidden; box-shadow:0 40px 80px -44px rgba(0,0,0,.6); background:#111; }
+.mag img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .6s ease, transform 6s ease; }
+.mag .grad{ position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.78) 4%, transparent 42%), linear-gradient(to bottom, rgba(0,0,0,.5), transparent 30%); }
+.mag .top{ position:absolute; top:0; left:0; right:0; padding:22px 24px; display:flex; justify-content:space-between; align-items:flex-start; color:#fff; }
+.mag .masthead{ font-size:34px; font-weight:800; letter-spacing:-.05em; line-height:.9; text-shadow:0 2px 14px rgba(0,0,0,.4); }
+.mag .issue{ font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.12em; opacity:.85; text-align:right; margin-top:6px; }
+.mag .flash{ position:absolute; top:78px; right:22px; background:var(--accent); color:#fff; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:8px 12px; border-radius:100px; transform:rotate(6deg); box-shadow:0 8px 18px -8px rgba(255,77,31,.9); }
+.mag .lines{ position:absolute; left:0; right:0; bottom:0; padding:26px 24px 28px; color:#fff; }
+.mag .lines .t{ font-size:clamp(26px,3.4vw,40px); font-weight:800; letter-spacing:-.035em; line-height:1.0; text-shadow:0 2px 16px rgba(0,0,0,.45); }
+.mag .lines .sub{ font-size:13.5px; opacity:.9; margin-top:12px; border-top:1px solid rgba(255,255,255,.25); padding-top:12px; }
+.split2{ display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center; }
+.split2 .copy .k{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:700; }
+.split2 .copy h2{ font-size:clamp(30px,3.6vw,46px); font-weight:700; letter-spacing:-.04em; margin-top:14px; line-height:1.02; }
+.split2 .copy p{ color:var(--ink-2); margin-top:16px; max-width:36ch; }
+@media (max-width:820px){ .split2{ grid-template-columns:1fr; gap:30px; } }
+
+footer{ padding:54px 0; border-top:1px dashed var(--line); text-align:center; color:var(--ink-3); font-size:13px; }
+</style>
+</head>
+<body>
+<nav><div class="nav-pill">
+  <a class="brand" href="index.html"><span class="dot"></span> WKNDR</a>
+  <div class="nav-links"><a href="index.html">Live</a><a href="alternatives.html">Round 1</a></div>
+  <a class="btn btn-accent" href="#">Open WKNDR</a>
+</div></nav>
+
+<div class="intro"><div class="wrap">
+  <div class="k">Four fresh swings · real content · just for fun</div>
+  <h1>Same weekend, four <span class="swap">wilder</span> ways in.</h1>
+</div></div>
+
+<!-- E -->
+<div class="variant-head"><div class="wrap"><span class="variant-tag">E</span><span class="variant-title">Departure board</span><span class="variant-note">Schiphol / Centraal energy — your weekend as a split-flap departures board that keeps re-flipping.</span></div></div>
+<section class="module"><div class="wrap"><div class="board"><div class="board-head"><span class="bh-l">◐ WEEKEND DEPARTURES</span><span class="bh-r">AMSTERDAM · re-ranking live</span></div><div class="board-rows" id="boardRows"></div></div></div></section>
+
+<!-- F -->
+<div class="variant-head"><div class="wrap"><span class="variant-tag">F</span><span class="variant-title">Scattered postcards</span><span class="variant-note">Picks as tilted postcards on a desk — stamps, tape, gentle drift. Hover to straighten one.</span></div></div>
+<section class="module"><div class="wrap"><div class="desk" id="desk"></div></div></section>
+
+<!-- G -->
+<div class="variant-head"><div class="wrap"><span class="variant-tag">G</span><span class="variant-title">Canal map + dropping pins</span><span class="variant-note">The grachtengordel as an abstract map; pins pulse and a pick pops up as each one activates.</span></div></div>
+<section class="module"><div class="wrap"><div class="map" id="map">
+  <svg class="canals" viewBox="0 0 600 520" preserveAspectRatio="xMidYMid slice">
+    <path class="water" d="M40 80 L560 80"></path>
+    <path d="M70 520 A 230 230 0 0 1 530 520"></path>
+    <path d="M120 520 A 180 180 0 0 1 480 520"></path>
+    <path d="M170 520 A 130 130 0 0 1 430 520"></path>
+    <path d="M300 520 L300 150"></path>
+    <path d="M300 200 L150 300"></path>
+    <path d="M300 200 L450 300"></path>
+  </svg>
+  <div id="pins"></div>
+  <div class="callout" id="callout" style="opacity:0"></div>
+</div></div></section>
+
+<!-- H -->
+<div class="variant-head"><div class="wrap"><span class="variant-tag">H</span><span class="variant-title">Magazine cover</span><span class="variant-note">A WePresent-style editorial cover that recomposes — masthead, cover-lines, a new hero pick every few seconds.</span></div></div>
+<section class="module"><div class="wrap split2">
+  <div class="copy">
+    <div class="k">Cover story</div>
+    <h2>This weekend has a cover.</h2>
+    <p>Every forecast gets its own issue — a single hero pick, big type, the rest as cover-lines. The most defensible look long-term: it never stops being new.</p>
+    <a class="btn btn-accent" style="margin-top:24px" href="#">Start swiping — it's free</a>
+  </div>
+  <div class="mag" id="mag">
+    <img id="magImg" alt="">
+    <div class="grad"></div>
+    <div class="top"><span class="masthead">WKNDR</span><span class="issue">ISSUE 24<br>WEEKEND · AMS</span></div>
+    <div class="flash" id="magFlash">—</div>
+    <div class="lines"><div class="t" id="magTitle">—</div><div class="sub" id="magSub">—</div></div>
+  </div>
+</div></section>
+
+<footer>Four new swings · E departure board · F postcards · G canal map · H magazine cover — tell me which (if any) to take further</footer>
+
+<script>
+const MODES = { HOT:{c1:'#ff9a3d',c2:'#c2310e',c3:'#5a1606',glow:'#ffd166'}, WARM:{c1:'#d8e08a',c2:'#6fa24a',c3:'#2c4a26',glow:'#fff0b0'}, COOL:{c1:'#9fc0b8',c2:'#4a716b',c3:'#1e3433',glow:'#cfe6df'}, COLD_WET:{c1:'#6c7e9c',c2:'#313f5e',c3:'#121a2e',glow:'#9fb2cc'}, VOLATILE:{c1:'#e08a4a',c2:'#7a5a7a',c3:'#2a3358',glow:'#ffcf8a'} };
+const coverGlow=(m)=>`radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;
+function fitPill(f){ const wet=f.includes('COLD_WET'),hot=f.includes('HOT'),warm=f.includes('WARM'),cool=f.includes('COOL'); if(hot&&wet)return'Rain or shine'; if(hot)return'Best when sunny'; if(warm&&!wet)return'Best when warm'; if(wet)return'Best on a wet day'; if(cool)return'Best when cool'; return'Any weather'; }
+function fitClass(f){ const l=fitPill(f); if(l==='Best on a wet day')return'wet'; if(l==='Rain or shine'||l==='Any weather')return'any'; if(l==='Best when cool')return'cool'; return''; }
+
+const PICKS = [
+  {t:'FKA twigs + Yves Tumor', area:'Ziggo Dome · Zuidoost', time:'18:00', when:'Sat 6 Jun', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/7413669/huge_avatar', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Red Light Jazz Festival', area:'De Wallen · Centrum', time:'19:30', when:'Fri–Sun', src:'I amsterdam', img:'https://redlightjazz.com/wp-content/uploads/2025/05/sabrina-starke-at-red-light-jazz-uitgelicht.webp', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Jungle by Night', area:'Vondelpark · Zuid', time:'16:00', when:'Sun 7 Jun', src:'Songkick', img:'https://upload.wikimedia.org/wikipedia/commons/c/c2/Jungle_by_Night.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Noordermarkt', area:'Jordaan', time:'09:00', when:'Sat 6 Jun', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/66791e9931e55c556280c599/1800x1020.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Sunday Market', area:'Westergas · West', time:'12:00', when:'Sun 7 Jun', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/60913a7a5e56be4386f24851/sunday%20market%20westergas.webp', fit:['HOT','WARM','COOL']},
+  {t:'Zaanse Schans', area:'Zaandam · 17 min', time:'ALL DAY', when:'Daily', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Beautiful-windmills-at-Zaanse-Schans-daytrip-near-Amsterdam-Holland-Netherlands.jpg', fit:['HOT','WARM','COOL']},
+  {t:'Foodhallen', area:'De Hallen · West', time:'11:00', when:'Daily', src:'Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg/1280px-Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Eye Filmmuseum', area:'Eye · Noord', time:'20:15', when:'Daily', src:'Eye', img:'https://assets.eyefilm.nl/images/_1200x630_crop_center-center_none/Foto-EYE-Marcus-Koppen-bijgesneden-2_2021-04-12-140514.jpeg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Pllek', area:'NDSM · Noord', time:'17:00', when:'Daily', src:'Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+  {t:'Motor City Drum Ensemble', area:'NDSM · Noord', time:'23:00', when:'Sat 6 Jun', src:'Songkick', img:'https://www.attackmagazine.com/wp-content/uploads/2012/09/6_MCDE_by_Stefan_Braunbarth.png', fit:['WARM','COOL','COLD_WET','VOLATILE']},
+];
+const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ===== E — departure board ===== */
+const boardRows = document.getElementById('boardRows');
+let boardShown = PICKS.slice(0,6), boardBench = PICKS.slice(6);
+function rowHTML(p){ return `<div class="brow"><span class="c-time">${p.time}</span><span class="c-evt">${p.t.toUpperCase()}</span><span class="c-area">${p.area.toUpperCase()}</span><span class="c-fit ${fitClass(p.fit)}"><i>${fitPill(p.fit)}</i></span></div>`; }
+boardRows.innerHTML = boardShown.map(rowHTML).join('');
+const GLY='ABCDEFGHIJKLMNOPQRSTUVWXYZØ0123456789·:+/';
+function scramble(el, text){ if(prefersReduce){ el.textContent=text; return; } const final=text; const start=performance.now(); const dur=520;
+  (function f(t){ const p=Math.min(1,(t-start)/dur); let o=''; for(let i=0;i<final.length;i++){ o += (p*final.length>i) ? final[i] : (final[i]===' '?' ':GLY[Math.floor(Math.random()*GLY.length)]); } el.textContent=o; if(p<1) requestAnimationFrame(f); else el.textContent=final; })(start); }
+function boardFlip(){ if(!boardBench.length) return; const rows=[...boardRows.children]; const i=Math.floor(Math.random()*rows.length); const incoming=boardBench.shift(); boardBench.push(boardShown[i]); boardShown[i]=incoming; const row=rows[i]; row.querySelector('.c-fit').className='c-fit '+fitClass(incoming.fit); scramble(row.querySelector('.c-time'), incoming.time); scramble(row.querySelector('.c-evt'), incoming.t.toUpperCase()); scramble(row.querySelector('.c-area'), incoming.area.toUpperCase()); row.querySelector('.c-fit i').textContent=fitPill(incoming.fit); }
+if(!prefersReduce){ setTimeout(()=>boardShown.forEach((p,i)=>setTimeout(()=>{ const r=boardRows.children[i]; scramble(r.querySelector('.c-evt'),p.t.toUpperCase()); scramble(r.querySelector('.c-time'),p.time); },i*90)),200); setInterval(boardFlip, 2600); }
+
+/* ===== F — postcards ===== */
+const desk=document.getElementById('desk');
+const pos=[ [4,10,-7],[27,4,5],[50,14,-4],[70,2,6],[20,40,4],[55,44,-6] ];
+desk.innerHTML = PICKS.slice(0,6).map((p,i)=>{ const [x,y,r]=pos[i]; return `<div class="postcard" style="left:${x}%; top:${y}%; --r:${r}deg; --d:${(i*0.7).toFixed(1)}s; z-index:${i}"><span class="tape"></span><div class="photo"><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.src=''" alt=""><span class="stamp">${fitPill(p.fit)}</span></div><div class="cap">${p.t}<i>${p.area}</i></div></div>`; }).join('');
+
+/* ===== G — canal map + pins ===== */
+const pinsEl=document.getElementById('pins'), callout=document.getElementById('callout');
+const pinPos=[ [50,29],[33,46],[66,47],[24,62],[76,61],[42,72],[60,75] ];
+const mapPicks=PICKS.slice(0,7);
+pinsEl.innerHTML=mapPicks.map((p,i)=>`<button class="pin" data-i="${i}" style="left:${pinPos[i][0]}%; top:${pinPos[i][1]}%"><span class="ping"></span><span class="dot"></span></button>`).join('');
+const pinEls=[...pinsEl.querySelectorAll('.pin')];
+function showPin(i){ pinEls.forEach((e,j)=>e.classList.toggle('on', j===i)); const p=mapPicks[i]; const [x,y]=pinPos[i]; callout.innerHTML=`<div class="ph"><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.style.background='${coverGlow(MODES[p.fit[0]])}'" alt=""><span class="fit">${fitPill(p.fit)}</span></div><div class="m"><div class="t">${p.t}</div><div class="v">${p.area} · ${p.when}</div></div>`; const left=x>55?`calc(${x}% - 264px)`:`calc(${x}% + 16px)`; const top=Math.min(y, 58); callout.style.left=left; callout.style.top=top+'%'; callout.style.opacity='1'; callout.style.transform='translateY(0)'; }
+pinEls.forEach((e,i)=> e.addEventListener('mouseenter', ()=>{ mapAuto=false; showPin(i); }));
+let mapIdx=0, mapAuto=true; showPin(0);
+if(!prefersReduce) setInterval(()=>{ if(!mapAuto) return; mapIdx=(mapIdx+1)%mapPicks.length; showPin(mapIdx); }, 2600);
+
+/* ===== H — magazine cover ===== */
+const magImg=document.getElementById('magImg'), magTitle=document.getElementById('magTitle'), magSub=document.getElementById('magSub'), magFlash=document.getElementById('magFlash');
+let magIdx=0;
+const magEl=document.getElementById('mag');
+function magShow(i){ const p=PICKS[i]; magEl.style.background=coverGlow(MODES[p.fit[0]]); magImg.style.opacity='0'; setTimeout(()=>{ magImg.src=p.img; magImg.style.opacity='1'; magImg.style.transform='scale(1.06)'; requestAnimationFrame(()=>{ magImg.style.transform='scale(1)'; }); }, 200); magTitle.textContent=p.t; magFlash.textContent=fitPill(p.fit); const others=PICKS.filter((_,j)=>j!==i).slice(0,3).map(x=>x.t).join(' · '); magSub.textContent='Inside · '+others; }
+magImg.src=PICKS[0].img; magShow(0);
+if(!prefersReduce) setInterval(()=>{ magIdx=(magIdx+1)%PICKS.length; magShow(magIdx); }, 3400);
+</script>
+</body>
+</html>
