@@ -7,6 +7,16 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.5 — 2026-06-10
+- **Finessed the bento movement**: replaced the rudimentary single-element 90° content
+  swap with a real **two-faced card flip** (front/back faces, 180° rotateY) — eased
+  motion, a mid-flip depth lift + shadow, randomized 1.9–2.8s cadence, and no-repeat tile
+  selection. State is baked on a timer so it stays robust if the tab is backgrounded.
+- **Source strip → monogram "logo" chips**: styled wordmark chips (mark + name) instead of
+  plain text. Deliberately NOT real third-party brand logos — copying those raises
+  copyright + false-endorsement (trademark) risk for a marketing site. Naming sources is
+  fair use; their actual logos would need per-source permission.
+
 ## v1.4 — 2026-06-10
 - Replaced the cover-flow hero with a **live bento gallery** (the chosen "A" direction):
   an editorial grid of real weekend picks that introduces **movement** — every ~2.2s a

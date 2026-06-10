@@ -147,9 +147,13 @@ h1 .swap{ color:var(--accent); }
 .hero-note{ margin-top:12px; font-size:13px; color:var(--ink-3); }
 
 /* hero bento — editorial grid of real picks, with live flip-refresh movement */
-.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:168px; gap:14px; margin-top:clamp(36px,5vw,54px); position:relative; z-index:2; perspective:1500px; }
-.pcard{ position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transform-style:preserve-3d; backface-visibility:hidden; transition:box-shadow .25s ease; }
+.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:168px; gap:14px; margin-top:clamp(36px,5vw,54px); position:relative; z-index:2; }
+.pcard{ position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transition:box-shadow .55s cubic-bezier(.45,.05,.25,1); perspective:1150px; }
 .pcard:hover{ box-shadow:0 24px 46px -22px rgba(0,0,0,.52); }
+.pcard.lift{ z-index:6; box-shadow:0 48px 82px -34px rgba(0,0,0,.62); }
+.flip{ position:absolute; inset:0; transform-style:preserve-3d; will-change:transform; }
+.face{ position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.face.back{ transform:rotateY(180deg); }
 .pcard .cover{ position:absolute; inset:0; }
 .pcard .cover .g{ position:absolute; inset:0; z-index:0; }
 .pcard .cover img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
@@ -188,10 +192,10 @@ h1 .swap{ color:var(--accent); }
    ============================================================ */
 .sources{ padding:46px 0 6px; text-align:center; }
 .sources .lbl{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
-.sources .strip{
-  margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:14px 40px;
-  font-size:17px; font-weight:600; color:var(--ink-2); opacity:.72; letter-spacing:-.01em;
-}
+.sources .strip{ margin-top:24px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:12px 14px; }
+.srclogo{ display:inline-flex; align-items:center; gap:9px; padding:8px 15px 8px 9px; border:1px solid var(--line); border-radius:100px; background:var(--card); font-size:14px; font-weight:600; color:var(--ink-2); letter-spacing:-.01em; opacity:.82; transition:opacity .2s ease, transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.srclogo:hover{ opacity:1; transform:translateY(-2px); border-color:var(--ink-3); box-shadow:0 8px 18px -12px rgba(0,0,0,.3); }
+.srclogo .mk{ width:26px; height:26px; flex:0 0 auto; border-radius:8px; background:linear-gradient(135deg,#2a2a26,#000); color:#fff; display:grid; place-items:center; font-size:10.5px; font-weight:800; letter-spacing:.02em; }
 
 /* ============================================================
    HOW IT WORKS — 3 steps
@@ -391,9 +395,15 @@ footer{ padding:80px 0 50px; }
   <div class="wrap">
     <div class="lbl">Reads the whole city, names its sources</div>
     <div class="strip">
-      <span>Buienradar</span><span>Resident Advisor</span><span>I amsterdam</span>
-      <span>Paradiso</span><span>Time Out</span><span>Songkick</span>
-      <span>Kidsproof</span><span>Little Black Book</span><span>KNMI</span>
+      <span class="srclogo"><span class="mk">B</span>Buienradar</span>
+      <span class="srclogo"><span class="mk">KN</span>KNMI</span>
+      <span class="srclogo"><span class="mk">RA</span>Resident Advisor</span>
+      <span class="srclogo"><span class="mk">I</span>I amsterdam</span>
+      <span class="srclogo"><span class="mk">P</span>Paradiso</span>
+      <span class="srclogo"><span class="mk">TO</span>Time Out</span>
+      <span class="srclogo"><span class="mk">S</span>Songkick</span>
+      <span class="srclogo"><span class="mk">K</span>Kidsproof</span>
+      <span class="srclogo"><span class="mk">LBB</span>Little Black Book</span>
     </div>
   </div>
 </div>
@@ -565,7 +575,7 @@ footer{ padding:80px 0 50px; }
       </div>
     </div>
     <div class="foot-bottom">
-      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.4</span></div>
+      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.5</span></div>
       <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
     </div>
   </div>
@@ -620,40 +630,64 @@ function fitPill(fit){
   return 'Any weather';
 }
 const coverBg = (fit)=> coverGlow(MODES[fit[0]]);
-function pcardInner(p){
+function faceInner(p){
   return `<div class="cover"><div class="g" style="background:${coverBg(p.fit)}"></div><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.remove()" alt=""><div class="grad"></div></div>
     <span class="fitpill">${fitPill(p.fit)}</span>
     <div class="info"><div class="t">${p.t}</div><div class="m">${p.v} · ${p.when}</div></div>`;
 }
 
-/* ---------- hero bento + live flip-refresh movement (the pool re-ranks in real time) ---------- */
+/* ---------- hero bento + live two-faced card flip (the pool re-ranks in real time) ---------- */
 const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const BENTO_LAYOUT = ['feat','','','tall','tall','',''];   // feat = 2×2, tall = 2 rows
 const bentoEl = document.getElementById('bento');
 let shown = PICKS.slice(0, BENTO_LAYOUT.length);
 let bench = PICKS.slice(BENTO_LAYOUT.length);
-bentoEl.innerHTML = shown.map((p,i)=>`<article class="pcard ${BENTO_LAYOUT[i]}">${pcardInner(p)}</article>`).join('');
+bentoEl.innerHTML = shown.map((p,i)=>
+  `<article class="pcard ${BENTO_LAYOUT[i]}"><div class="flip"><div class="face front">${faceInner(p)}</div><div class="face back"></div></div></article>`
+).join('');
 const tiles = [...bentoEl.querySelectorAll('.pcard')];
+tiles.forEach(t=>{ t._rot = 0; t._busy = false; });
 
-let flipTimer = null;
-function flipRandomTile(){
+let lastIdx = -1, flipTimer = null;
+function flipNext(){
   if(!bench.length) return;
-  const idx = Math.floor(Math.random() * tiles.length);
-  const el = tiles[idx];
+  let idx, guard = 0;
+  do { idx = Math.floor(Math.random() * tiles.length); guard++; }
+  while((idx === lastIdx || tiles[idx]._busy) && guard < 24);
+  const tile = tiles[idx];
+  if(tile._busy) return;
+  lastIdx = idx;
+
   const incoming = bench.shift();
   bench.push(shown[idx]);
   shown[idx] = incoming;
-  el.style.transition = 'transform .34s ease-in';
-  el.style.transform = 'rotateY(90deg)';
+
+  const flip = tile.querySelector('.flip');
+  const from = tile._rot;
+  const to = from + 180;
+  // render the incoming pick onto the currently-hidden face, then rotate it into view
+  const hidden = tile.querySelector((from % 360 === 0) ? '.face.back' : '.face.front');
+  hidden.innerHTML = faceInner(incoming);
+
+  tile._busy = true;
+  tile.classList.add('lift');
+  const anim = flip.animate([
+    { transform:`rotateY(${from}deg) translateZ(0) scale(1)` },
+    { transform:`rotateY(${from + 90}deg) translateZ(40px) scale(1.02)`, offset:.5 },
+    { transform:`rotateY(${to}deg) translateZ(0) scale(1)` },
+  ], { duration:780, easing:'cubic-bezier(.5,0,.2,1)', fill:'forwards' });
+  // bake the end state on a timer (robust even if the tab is backgrounded and WAAPI pauses)
   setTimeout(()=>{
-    el.innerHTML = pcardInner(incoming);
-    el.style.transition = 'transform .34s ease-out';
-    el.style.transform = 'rotateY(0deg)';
-    setTimeout(()=>{ el.style.transition=''; el.style.transform=''; }, 360);
-  }, 340);
+    flip.style.transform = `rotateY(${to % 360}deg)`;
+    anim.cancel();
+    tile._rot = to % 360;
+    tile.classList.remove('lift');
+    tile._busy = false;
+  }, 820);
 }
-const bentoStop = ()=>{ if(flipTimer){ clearInterval(flipTimer); flipTimer=null; } };
-const bentoPlay = ()=>{ if(prefersReduce) return; bentoStop(); flipTimer = setInterval(flipRandomTile, 2200); };
+const flipDelay = ()=> 1900 + Math.random() * 900;   // 1.9–2.8s, varied so it isn't metronomic
+const bentoStop = ()=>{ if(flipTimer){ clearTimeout(flipTimer); flipTimer = null; } };
+const bentoPlay = ()=>{ if(prefersReduce) return; bentoStop(); const loop = ()=>{ flipNext(); flipTimer = setTimeout(loop, flipDelay()); }; flipTimer = setTimeout(loop, flipDelay()); };
 bentoEl.addEventListener('mouseenter', bentoStop);
 bentoEl.addEventListener('mouseleave', bentoPlay);
 bentoPlay();
