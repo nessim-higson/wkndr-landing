@@ -1,776 +1,480 @@
 <!DOCTYPE html>
-<html lang="en" data-mode="HOT">
+<html lang="en" data-mode="WARM">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>WKNDR — your weekend, sorted by the weather</title>
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet" />
 <style>
-/* ============================================================
-   WKNDR landing — Maneken-style layout, WKNDR brand tokens
-   ============================================================ */
+/* =========================================================
+   WKNDR landing — built on the real app's UI tokens & card
+   (tokens lifted from app/src/index.css + Card.css + SwipeStack.css)
+   ========================================================= */
 :root{
-  --ink:    #0e0e0c;
-  --ink-2:  #54534d;
-  --ink-3:  #8b8a82;
-  --paper:  #faf8f3;       /* warm muji off-white */
-  --card:   #ffffff;
-  --line:   #e7e3d8;
-  --accent: #ff4d1f;       /* energetic orange-red */
-  --radius: 22px;
-  --radius-lg: 30px;
-
-  /* live weather-field palette (set by JS, default HOT) */
-  --field-1: #ff9a3d;
-  --field-2: #c2310e;
-  --field-3: #5a1606;
-  --field-glow: #ffd166;
+  --ink:#1a1a1a; --ink-2:#2a2a2a; --ink-3:#5a5a5a; --ink-4:#9a9a96; --ink-5:#c4c4c0;
+  --paper:#faf8f3; --paper-2:#f1efe8; --paper-3:#e7e4db; --rule:#ddd9cf;
+  --accent:#ff4d1f; --accent-deep:#8a2818;
+  --ease-out:cubic-bezier(0.22,1,0.36,1); --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --font-display:'Clash Display','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --font-body:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  /* weather field (WARM) */
+  --field-1:#d8e08a; --field-2:#6fa24a; --field-3:#2c4a26; --field-glow:#fff0b0;
 }
-
-*{ box-sizing:border-box; margin:0; padding:0; }
-html{ scroll-behavior:smooth; -webkit-font-smoothing:antialiased; }
-body{
-  font-family:"Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-  background:var(--paper);
-  color:var(--ink);
-  line-height:1.45;
-  overflow-x:hidden;
-}
+*{ margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+html{ scroll-behavior:smooth; }
+body{ font-family:var(--font-body); background:var(--paper); color:var(--ink); line-height:1.45; overflow-x:hidden; font-feature-settings:"kern","liga","tnum"; }
 a{ color:inherit; text-decoration:none; }
-.mono{ font-family:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+.display{ font-family:var(--font-display); font-weight:600; letter-spacing:-0.02em; line-height:1.02; }
+.mono{ font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; }
+::selection{ background:var(--accent); color:#fff; }
+img{ display:block; max-width:100%; }
+.wrap{ width:min(1180px,92vw); margin:0 auto; }
+section{ padding:clamp(70px,10vw,128px) 0; position:relative; }
 
-/* ---------- shared ---------- */
-.wrap{ width:min(1180px, 92vw); margin:0 auto; }
-.eyebrow{
-  font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--ink-3);
-  display:inline-flex; align-items:center; gap:8px;
-}
+/* film-grain overlay — the app's signature tactile surface */
+body::after{ content:''; position:fixed; inset:0; z-index:9000; pointer-events:none; opacity:0.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:160px 160px; }
+
+.eyebrow{ font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); display:inline-flex; align-items:center; gap:8px; }
 .eyebrow::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); }
-h2.section-title{
-  font-size:clamp(34px, 5.2vw, 60px);
-  font-weight:700; letter-spacing:-.035em; line-height:1.02;
-  margin:18px 0 0;
-}
-.section-sub{ font-size:clamp(16px,1.4vw,19px); color:var(--ink-2); max-width:54ch; margin-top:16px; }
-section{ padding:clamp(72px, 11vw, 140px) 0; position:relative; }
+h2.section-title{ font-family:var(--font-display); font-size:clamp(32px,4.8vw,54px); font-weight:600; letter-spacing:-.03em; line-height:1.02; margin:16px 0 0; }
+.section-sub{ font-size:clamp(15px,1.3vw,18px); color:var(--ink-3); max-width:54ch; margin-top:14px; }
 
 /* buttons */
-.btn{
-  display:inline-flex; align-items:center; gap:9px; cursor:pointer; border:none;
-  font-size:15px; font-weight:600; letter-spacing:-.01em;
-  padding:14px 24px; border-radius:100px; transition:transform .18s ease, background .2s ease, box-shadow .2s ease;
-}
-.btn:active{ transform:translateY(1px) scale(.99); }
-.btn-accent{ background:var(--accent); color:#fff; box-shadow:0 8px 22px -10px rgba(255,77,31,.8); }
-.btn-accent:hover{ transform:translateY(-2px); box-shadow:0 14px 30px -12px rgba(255,77,31,.85); }
-.btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+.btn{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none; font-size:15px; font-weight:600; letter-spacing:-.01em; padding:13px 22px; border-radius:999px; transition:transform .18s var(--ease-out), filter .2s, box-shadow .2s; }
+.btn-accent{ background:var(--accent); color:#fff; box-shadow:0 8px 22px -10px rgba(255,77,31,.85); }
+.btn-accent:hover{ transform:translateY(-2px); }
+.btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--rule); }
 .btn-ghost:hover{ border-color:var(--ink); transform:translateY(-2px); }
 .btn-dark{ background:var(--ink); color:var(--paper); }
-.btn-dark:hover{ transform:translateY(-2px); }
+.btn-dark:hover{ filter:brightness(1.4); transform:translateY(-2px); }
 
-/* ============================================================
-   NAV — floating pill
-   ============================================================ */
-.nav-spacer{ height:96px; }
-nav{
-  position:fixed; top:16px; left:0; right:0; z-index:100;
-  display:flex; justify-content:center; pointer-events:none;
-}
-.nav-pill{
-  pointer-events:auto;
-  display:inline-flex; align-items:center; gap:8px;
-  background:rgba(255,255,255,.78);
-  backdrop-filter:saturate(180%) blur(18px);
-  -webkit-backdrop-filter:saturate(180%) blur(18px);
-  border:1px solid rgba(231,227,216,.9);
-  border-radius:100px;
-  padding:7px 7px 7px 18px;
-  box-shadow:0 10px 30px -16px rgba(0,0,0,.28);
-}
-.brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; letter-spacing:-.04em; }
-.brand .dot{
-  width:11px; height:11px; border-radius:50%;
-  background:conic-gradient(from 200deg, var(--field-1), var(--field-glow), var(--field-2), var(--field-1));
-  box-shadow:0 0 0 3px rgba(255,255,255,.6), 0 0 14px -2px var(--field-glow);
-  transition:background .8s ease;
-}
-.nav-links{ display:flex; gap:22px; font-size:13.5px; font-weight:500; color:var(--ink-2); margin:0 14px 0 18px; }
-.nav-links a{ transition:color .15s ease; }
+/* ============ NAV (compact pill, Clash wordmark) ============ */
+nav{ position:fixed; top:16px; left:0; right:0; z-index:100; display:flex; justify-content:center; pointer-events:none; }
+.nav-pill{ pointer-events:auto; display:inline-flex; align-items:center; gap:8px; background:rgba(250,248,243,.82); backdrop-filter:saturate(180%) blur(18px); -webkit-backdrop-filter:saturate(180%) blur(18px); border:1px solid var(--rule); border-radius:999px; padding:7px 7px 7px 18px; box-shadow:0 10px 30px -16px rgba(0,0,0,.28); }
+.brand{ font-family:var(--font-display); display:flex; align-items:center; gap:8px; font-weight:700; font-size:18px; letter-spacing:-.03em; }
+.brand .dot{ width:11px; height:11px; border-radius:50%; background:conic-gradient(from 200deg,var(--field-2),var(--field-glow),var(--field-1),var(--field-2)); box-shadow:0 0 0 3px rgba(255,255,255,.6); }
+.nav-links{ display:flex; gap:20px; font-size:13.5px; font-weight:500; color:var(--ink-3); margin:0 12px 0 16px; }
 .nav-links a:hover{ color:var(--ink); }
 .nav-pill .btn{ padding:9px 17px; font-size:13.5px; }
-@media (max-width:680px){ .nav-links{ display:none; } }
+@media (max-width:720px){ .nav-links{ display:none; } }
 
-/* ============================================================
-   HERO
-   ============================================================ */
-.hero{ padding-top:clamp(92px,11vw,116px); padding-bottom:0; position:relative; text-align:center; }
-/* the live ambient weather field, soft, behind hero text */
-.hero-field{
-  position:absolute; inset:-14% 0 auto; height:560px; z-index:0; pointer-events:none;
-  filter:blur(64px); opacity:.42; mix-blend-mode:screen;
-  -webkit-mask-image:radial-gradient(110% 62% at 50% 6%, #000 0%, transparent 62%);
-  mask-image:radial-gradient(110% 62% at 50% 6%, #000 0%, transparent 62%);
-}
-.hero-field .blob{ position:absolute; border-radius:50%; transition:background 1s ease; will-change:transform; }
-.hero-field .b1{ width:40vw; height:40vw; left:10%; top:-12%; background:radial-gradient(circle at 50% 50%, var(--field-1), transparent 64%); animation:drift1 19s ease-in-out infinite; }
-.hero-field .b2{ width:34vw; height:34vw; right:10%; top:-8%; background:radial-gradient(circle at 50% 50%, var(--field-glow), transparent 64%); animation:drift2 23s ease-in-out infinite; }
-.hero-field .b3{ width:30vw; height:30vw; left:36%; top:-4%; background:radial-gradient(circle at 50% 50%, var(--field-1), transparent 62%); animation:drift3 27s ease-in-out infinite; }
-@keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(6%,5%) scale(1.12); } }
-@keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1.05); } 50%{ transform:translate(-7%,4%) scale(.92); } }
-@keyframes drift3{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(3%,-6%) scale(1.1); } }
+/* ============ HERO — editorial split + live swipe deck ============ */
+.hero{ padding-top:clamp(104px,12vw,140px); position:relative; overflow:hidden; }
+.hero-field{ position:absolute; inset:-18% -10% auto; height:620px; z-index:0; pointer-events:none; filter:blur(70px); opacity:.5; mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(120% 70% at 60% 12%, #000 0%, transparent 64%); mask-image:radial-gradient(120% 70% at 60% 12%, #000 0%, transparent 64%); }
+.hero-field .b{ position:absolute; border-radius:50%; }
+.hero-field .b1{ width:42vw; height:42vw; right:6%; top:-8%; background:radial-gradient(circle,var(--field-1),transparent 64%); }
+.hero-field .b2{ width:34vw; height:34vw; right:24%; top:6%; background:radial-gradient(circle,var(--field-glow),transparent 64%); }
+.hero-field .b3{ width:30vw; height:30vw; right:0%; top:18%; background:radial-gradient(circle,var(--field-2),transparent 66%); opacity:.5; }
+.hero-grid{ position:relative; z-index:2; display:grid; grid-template-columns:1.04fr .96fr; gap:48px; align-items:center; }
+.hero-chip{ display:inline-flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--rule); border-radius:999px; padding:7px 7px 7px 15px; font-size:13px; font-weight:600; box-shadow:0 6px 18px -12px rgba(0,0,0,.3); margin-bottom:22px; }
+.hero-chip .mode-tag{ font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#fff; padding:5px 10px; border-radius:999px; background:linear-gradient(120deg,var(--field-3),var(--field-2)); }
+.hero h1{ font-family:var(--font-display); font-size:clamp(40px,6vw,76px); font-weight:600; letter-spacing:-.035em; line-height:.98; }
+.hero h1 .swap{ color:var(--accent); }
+.hero-sub{ font-size:clamp(16px,1.5vw,20px); color:var(--ink-3); max-width:40ch; margin:20px 0 0; line-height:1.5; }
+.hero-actions{ display:flex; gap:13px; margin-top:26px; flex-wrap:wrap; }
+.hero-note{ margin-top:14px; font-size:13px; color:var(--ink-4); }
 
-.hero-inner{ position:relative; z-index:2; }
-.weather-chip{
-  display:inline-flex; align-items:center; gap:11px;
-  background:var(--card); border:1px solid var(--line); border-radius:100px;
-  padding:8px 8px 8px 16px; font-size:13.5px; font-weight:600; margin-bottom:22px;
-  box-shadow:0 6px 18px -12px rgba(0,0,0,.3);
-}
-.weather-chip .glyph{ font-size:16px; }
-.weather-chip .mode-tag{
-  font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-  color:#fff; padding:5px 11px; border-radius:100px;
-  background:linear-gradient(120deg, var(--field-2), var(--field-1));
-  transition:background .8s ease;
-}
-h1.hero-title{
-  font-size:clamp(40px, 6.2vw, 78px);
-  font-weight:700; letter-spacing:-.045em; line-height:.98;
-  max-width:18ch; margin:0 auto;
-}
-h1 .swap{ color:var(--accent); }
-.hero-sub{
-  font-size:clamp(16px, 1.6vw, 20px); color:var(--ink-2);
-  max-width:50ch; margin:18px auto 0; line-height:1.5;
-}
-.hero-actions{ display:flex; gap:14px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
-.hero-note{ margin-top:12px; font-size:13px; color:var(--ink-3); }
+/* ============ SWIPE DECK (real card + real physics, vanilla) ============ */
+.deck-stage{ display:flex; flex-direction:column; align-items:center; gap:22px; }
+.deck{ position:relative; width:min(360px,82vw); aspect-ratio:0.72; touch-action:pan-y; }
+.deck-card{ position:absolute; inset:0; will-change:transform; transform-origin:center bottom; }
+.deck-card.top{ cursor:grab; }
+.deck-card.top:active{ cursor:grabbing; }
+.deck-hint{ font-size:12px; color:var(--ink-4); letter-spacing:.02em; display:inline-flex; align-items:center; gap:8px; transition:opacity .3s; }
+.deck-hint b{ color:var(--ink-3); }
+.deck-actions{ display:flex; gap:16px; align-items:center; }
+.act{ width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background:#fff; color:var(--ink-3); box-shadow:0 6px 20px rgba(0,0,0,.16); transition:transform .12s var(--ease-out), color .12s; }
+.act:hover{ transform:translateY(-2px); } .act:active{ transform:scale(.92); }
+.act-nope:hover{ color:#d2402e; } .act-save:hover{ color:var(--accent); }
 
-/* hero bento — editorial grid of real picks, with live flip-refresh movement */
-.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:168px; gap:14px; margin-top:clamp(36px,5vw,54px); position:relative; z-index:2; }
-.pcard{ position:relative; border-radius:18px; box-shadow:0 16px 36px -26px rgba(0,0,0,.4); transition:box-shadow .55s cubic-bezier(.45,.05,.25,1); perspective:1150px; }
-.pcard:hover{ box-shadow:0 24px 46px -22px rgba(0,0,0,.52); }
-.pcard.lift{ z-index:6; box-shadow:0 48px 82px -34px rgba(0,0,0,.62); }
-.flip{ position:absolute; inset:0; transform-style:preserve-3d; will-change:transform; }
-/* clip + border live on the FACES, not the .pcard — an overflow:hidden perspective parent
-   flattens the 3D context and makes the hidden face show through mirror-reversed */
-.face{ position:absolute; inset:0; border-radius:18px; overflow:hidden; border:1px solid var(--line); background:var(--card); backface-visibility:hidden; -webkit-backface-visibility:hidden; }
-.face.back{ transform:rotateY(180deg); }
-.pcard .cover{ position:absolute; inset:0; }
-.pcard .cover .g{ position:absolute; inset:0; z-index:0; }
-.pcard .cover img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-.pcard .cover .grad{ position:absolute; inset:0; z-index:2; background:linear-gradient(to top, rgba(0,0,0,.58), transparent 58%); }
-.pcard .fitpill{ position:absolute; top:12px; left:12px; z-index:4; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:rgba(255,255,255,.93); color:var(--ink); padding:5px 9px; border-radius:100px; backdrop-filter:blur(4px); }
-.pcard .info{ position:absolute; left:0; right:0; bottom:0; z-index:4; padding:14px 15px; color:#fff; text-align:left; }
-.pcard .info .t{ font-size:15.5px; font-weight:700; letter-spacing:-.02em; line-height:1.16; text-shadow:0 1px 10px rgba(0,0,0,.5); }
-.pcard .info .m{ font-size:11.5px; opacity:.92; margin-top:4px; }
-.pcard.feat{ grid-column:span 2; grid-row:span 2; }
-.pcard.feat .info .t{ font-size:24px; }
-.pcard.tall{ grid-row:span 2; }
-@media (max-width:760px){ .bento{ grid-template-columns:repeat(2,1fr); grid-auto-rows:148px; } .pcard.feat{ grid-column:span 2; grid-row:span 2; } .pcard.tall{ grid-row:span 1; } }
+/* the real Card (front) — from app Card.css */
+.card{ position:relative; width:100%; height:100%; border-radius:22px; overflow:hidden; background-size:cover; background-position:center; background-color:var(--paper-3); box-shadow:0 18px 50px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.12); user-select:none; }
+.poster--live{ background:linear-gradient(145deg,#5a4b8c,#241d44);} .poster--art{ background:linear-gradient(145deg,#b9613a,#5e2a1c);} .poster--stage{ background:linear-gradient(145deg,#834066,#361d35);} .poster--eat{ background:linear-gradient(145deg,#cf8038,#7a3f1a);} .poster--drink{ background:linear-gradient(145deg,#2f8f86,#143f3c);} .poster--market{ background:linear-gradient(145deg,#6f9a4a,#2c4624);} .poster--out{ background:linear-gradient(145deg,#4e9a63,#21452f);} .poster--daytrip{ background:linear-gradient(145deg,#3f72ad,#1c3656);}
+.card-scrim{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.42) 0%, transparent 26%, transparent 42%, rgba(0,0,0,.58) 72%, rgba(0,0,0,.84) 100%); }
+.card-top{ position:absolute; top:14px; left:14px; right:52px; z-index:2; display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.card-when{ display:inline-flex; align-items:center; gap:6px; max-width:100%; padding:6px 11px; border-radius:999px; background:rgba(20,20,22,.5); border:1px solid rgba(255,255,255,.16); backdrop-filter:blur(8px); color:#fff; font-size:15px; font-weight:700; letter-spacing:-.012em; }
+.card-when svg{ flex-shrink:0; opacity:.92; }
+.card-when-text{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card-when-temp{ flex-shrink:0; padding-left:8px; border-left:1px solid rgba(255,255,255,.28); font-variant-numeric:tabular-nums; }
+.card-signal{ align-self:flex-start; padding:6px 11px; border-radius:999px; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#fff; backdrop-filter:blur(6px); box-shadow:0 2px 10px rgba(0,0,0,.2); white-space:nowrap; }
+.card-signal--accent{ background:var(--accent); } .card-signal--dim{ background:rgba(26,26,26,.7); color:rgba(255,255,255,.85); } .card-signal--green{ background:#2faa6a; }
+.card-signal--glow{ box-shadow:0 2px 16px rgba(255,77,31,.55); }
+.card-expand{ position:absolute; top:14px; right:14px; z-index:3; display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; color:#fff; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3); backdrop-filter:blur(4px); border-radius:50%; }
+.card-body{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:20px 20px 22px; color:#fff; }
+.card-cat{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#fff; opacity:.8; font-weight:600; margin-bottom:7px; }
+.card-title{ font-family:var(--font-body); font-size:27px; font-weight:700; line-height:1.08; letter-spacing:-.03em; color:#fff; text-shadow:0 2px 18px rgba(0,0,0,.4); }
+.card-venue{ margin-top:5px; font-size:13px; color:rgba(255,255,255,.82); }
 
-.pick{
-  width:280px; flex:0 0 auto; background:var(--card); border-radius:var(--radius);
-  border:1px solid var(--line); overflow:hidden;
-  box-shadow:0 18px 40px -28px rgba(0,0,0,.4);
-  transition:transform .25s ease;
-}
-.pick:hover{ transform:translateY(-6px); }
-.pick .cover{ height:172px; position:relative; overflow:hidden; }
-.pick .cover .g{ position:absolute; inset:0; }
-.pick .fitpill{
-  position:absolute; top:12px; left:12px; z-index:2;
-  font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  background:rgba(255,255,255,.92); color:var(--ink); padding:5px 10px; border-radius:100px;
-  backdrop-filter:blur(4px);
-}
-.pick .meta{ padding:15px 16px 17px; }
-.pick .ptitle{ font-size:16.5px; font-weight:700; letter-spacing:-.02em; line-height:1.18; }
-.pick .psrc{ margin-top:9px; font-size:11.5px; color:var(--ink-3); display:flex; align-items:center; gap:7px; }
-.pick .psrc .src{ color:var(--ink-2); font-weight:600; }
+/* swipe feedback (from SwipeStack.css) */
+.swipe-tint{ position:absolute; inset:0; z-index:15; border-radius:22px; pointer-events:none; opacity:0; }
+.swipe-tint.red{ background:linear-gradient(to bottom, rgba(236,59,34,.86), rgba(236,59,34,.42)); }
+.swipe-tint.green{ background:linear-gradient(to bottom, rgba(22,168,90,.86), rgba(22,168,90,.42)); }
+.stamp{ position:absolute; top:50%; left:50%; margin:-54px 0 0 -54px; width:108px; height:108px; z-index:18; display:grid; place-items:center; border-radius:50%; color:#fff; border:1.5px solid rgba(255,255,255,.85); background:rgba(255,255,255,.14); backdrop-filter:blur(10px); box-shadow:0 10px 44px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.3); pointer-events:none; opacity:0; }
+@media (max-width:920px){ .hero-grid{ grid-template-columns:1fr; gap:34px; text-align:center; } .hero-actions,.hero-chip{ justify-content:center; } .hero-sub{ margin-left:auto; margin-right:auto; } .deck-stage{ margin-top:4px; } }
 
-/* ============================================================
-   LOGO STRIP / source trace
-   ============================================================ */
+/* ============ SOURCE STRIP ============ */
 .sources{ padding:46px 0 6px; text-align:center; }
-.sources .lbl{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
-.sources .strip{
-  margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:14px 40px;
-  font-size:17px; font-weight:600; color:var(--ink-2); opacity:.72; letter-spacing:-.01em;
-}
+.sources .lbl{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-4); font-weight:600; }
+.sources .strip{ margin-top:22px; display:flex; flex-wrap:wrap; justify-content:center; gap:14px 40px; font-size:17px; font-weight:600; color:var(--ink-3); opacity:.72; letter-spacing:-.01em; }
 
-/* ============================================================
-   HOW IT WORKS — 3 steps
-   ============================================================ */
-.steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:56px; }
-.step{
-  background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg);
-  padding:30px 28px 32px; position:relative; overflow:hidden;
-}
-.step .num{
-  font-size:13px; font-weight:700; letter-spacing:.1em;
-  color:var(--accent); margin-bottom:46px; display:block;
-}
-.step .ico{
-  position:absolute; top:26px; right:26px; width:46px; height:46px; border-radius:14px;
-  display:grid; place-items:center; font-size:22px;
-  background:var(--paper); border:1px solid var(--line);
-}
-.step h3{ font-size:22px; font-weight:700; letter-spacing:-.025em; }
-.step p{ margin-top:11px; color:var(--ink-2); font-size:15.5px; }
+/* ============ HOW IT WORKS ============ */
+.steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:52px; }
+.step{ background:#fff; border:1px solid var(--rule); border-radius:22px; padding:28px 26px 30px; position:relative; }
+.step .num{ font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:.1em; color:var(--accent); margin-bottom:44px; display:block; }
+.step .ico{ position:absolute; top:24px; right:24px; width:46px; height:46px; border-radius:14px; display:grid; place-items:center; background:var(--paper-2); border:1px solid var(--rule); color:var(--ink-2); }
+.step h3{ font-size:21px; font-weight:700; letter-spacing:-.025em; }
+.step p{ margin-top:10px; color:var(--ink-3); font-size:15px; line-height:1.5; }
 @media (max-width:820px){ .steps{ grid-template-columns:1fr; } }
 
-/* ============================================================
-   WEATHER MODES — five skies
-   ============================================================ */
-.modes{ background:var(--ink); color:var(--paper); border-radius:clamp(28px,4vw,46px); margin:0 auto; }
-.modes .wrap{ padding:clamp(64px,9vw,110px) clamp(28px,5vw,70px); }
-.modes .eyebrow{ color:#a9a79c; }
-.modes h2.section-title{ color:var(--paper); }
-.modes .section-sub{ color:#b6b4a9; }
-.mode-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-top:50px; }
-.mode-card{
-  border-radius:20px; overflow:hidden; min-height:260px; position:relative;
-  display:flex; flex-direction:column; justify-content:flex-end;
-  padding:20px; cursor:pointer; transition:transform .25s ease;
-  border:1px solid rgba(255,255,255,.08);
-}
-.mode-card:hover{ transform:translateY(-6px); }
-.mode-card .swatch{ position:absolute; inset:0; z-index:0; transition:filter .3s ease; }
-.mode-card:hover .swatch{ filter:saturate(1.15) brightness(1.05); }
+/* ============ A — "WHAT'S ON" BENTO of real cards ============ */
+.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:172px; gap:14px; margin-top:48px; }
+.bento .card{ transition:transform .25s var(--ease-out); }
+.bento .card:hover{ transform:translateY(-5px); }
+.bento .card .card-title{ font-size:18px; }
+.bento .feat{ grid-column:span 2; grid-row:span 2; }
+.bento .feat .card-title{ font-size:28px; }
+.bento .tall{ grid-row:span 2; }
+@media (max-width:760px){ .bento{ grid-template-columns:repeat(2,1fr); grid-auto-rows:150px; } .bento .feat{ grid-column:span 2; } .bento .tall{ grid-row:span 1; } }
+
+/* ============ D — RANKED LIST (real ListView rows) ============ */
+.listwrap{ max-width:680px; margin:46px auto 0; display:flex; flex-direction:column; gap:10px; }
+.row-inner{ display:grid; grid-template-columns:76px 1fr auto; gap:14px; align-items:center; padding:11px; background:#fff; border:1px solid var(--rule); border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,.06); transition:background .15s, transform .15s var(--ease-out); }
+.row-inner:hover{ transform:translateY(-2px); background:#fff; box-shadow:0 10px 26px -12px rgba(0,0,0,.18); }
+.row-thumb{ width:76px; height:76px; border-radius:10px; background-size:cover; background-position:center; background-color:var(--paper-3); }
+.row-main{ min-width:0; }
+.row-tags{ font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-4); display:flex; flex-wrap:wrap; align-items:center; gap:4px 7px; }
+.row-fresh{ color:var(--accent); font-weight:700; } .row-cat{ color:var(--ink-3); } .row-perfect{ color:#fff; background:var(--accent); font-weight:700; padding:1px 5px; border-radius:3px; }
+.row-title{ margin-top:5px; font-size:15px; font-weight:600; letter-spacing:-.022em; line-height:1.2; color:var(--ink); }
+.row-meta{ margin-top:3px; font-size:11.5px; color:var(--ink-4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.row-when{ color:var(--ink-2); font-weight:600; }
+.row-save{ width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:var(--ink-4); background:var(--paper-2); transition:all .12s var(--ease-out); }
+.row-save:hover{ color:var(--accent); transform:scale(1.08); }
+.row-save.on{ color:#fff; background:var(--accent); }
+.list-foot{ text-align:center; margin-top:26px; }
+
+/* ============ WEATHER MODES ============ */
+.modes{ background:var(--ink); color:var(--paper); border-radius:clamp(26px,4vw,44px); }
+.modes .wrap{ padding:clamp(60px,9vw,104px) clamp(26px,5vw,68px); }
+.modes .eyebrow{ color:#a9a79c; } .modes h2.section-title{ color:var(--paper); } .modes .section-sub{ color:#b6b4a9; }
+.mode-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:13px; margin-top:46px; }
+.mode-card{ border-radius:18px; overflow:hidden; min-height:248px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; padding:18px; border:1px solid rgba(255,255,255,.08); }
+.mode-card .swatch{ position:absolute; inset:0; z-index:0; }
 .mode-card .body{ position:relative; z-index:1; }
-.mode-card .mlabel{ font-size:19px; font-weight:700; letter-spacing:-.02em; }
-.mode-card .mcond{ font-size:10.5px; letter-spacing:.06em; margin-top:6px; opacity:.85; }
-.mode-card .mphrase{ font-size:13px; line-height:1.4; margin-top:12px; opacity:.92; }
+.mode-card .mlabel{ font-size:18px; font-weight:700; letter-spacing:-.02em; }
+.mode-card .mcond{ font-size:10px; letter-spacing:.06em; margin-top:6px; opacity:.85; }
+.mode-card .mphrase{ font-size:12.5px; line-height:1.4; margin-top:11px; opacity:.92; }
 @media (max-width:900px){ .mode-grid{ grid-template-columns:repeat(2,1fr); } }
 @media (max-width:520px){ .mode-grid{ grid-template-columns:1fr; } }
 
-/* ============================================================
-   SWIPE DEMO — phone with card deck
-   ============================================================ */
-.demo{ display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:center; }
-.phone{
-  width:300px; height:610px; margin:0 auto; position:relative;
-  background:#111; border-radius:46px; padding:13px;
-  box-shadow:0 50px 90px -50px rgba(0,0,0,.7), inset 0 0 0 2px rgba(255,255,255,.06);
-}
-.phone .screen{
-  width:100%; height:100%; border-radius:34px; overflow:hidden; position:relative;
-  background:var(--paper);
-}
-.phone .notch{ position:absolute; top:14px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#111; border-radius:100px; z-index:5; }
-/* phone shows the List view (the stack's other posture) */
-.pl-head{ padding:30px 18px 10px; }
-.pl-chip{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; background:var(--paper); border:1px solid var(--line); padding:5px 11px; border-radius:100px; }
-.pl-title{ font-size:23px; font-weight:700; letter-spacing:-.03em; margin-top:12px; }
-.pl-sub{ font-size:11px; color:var(--ink-3); margin-top:3px; }
-.pl-list{ position:absolute; left:0; right:0; top:128px; bottom:0; overflow:hidden; padding:2px 12px 16px; }
-.pl-row{ display:flex; gap:12px; align-items:center; padding:11px 6px; border-bottom:1px solid var(--line); }
-.pl-row .th{ width:54px; height:54px; flex:0 0 auto; border-radius:12px; overflow:hidden; position:relative; border:1px solid var(--line); }
-.pl-row .th .g{ position:absolute; inset:0; z-index:0; }
-.pl-row .th img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-.pl-row .tx{ min-width:0; flex:1; }
-.pl-row .tx .t{ font-size:14px; font-weight:700; letter-spacing:-.02em; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.pl-row .tx .v{ font-size:11px; color:var(--ink-3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.pl-row .pf{ flex:0 0 auto; font-size:9px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; background:var(--paper); border:1px solid var(--line); padding:4px 7px; border-radius:100px; white-space:nowrap; }
-
-.demo-copy .feat{ display:flex; gap:15px; margin-top:26px; }
-.demo-copy .feat .fi{ flex:0 0 auto; width:42px; height:42px; border-radius:12px; background:var(--paper); border:1px solid var(--line); display:grid; place-items:center; font-size:20px; }
-.demo-copy .feat h4{ font-size:17px; font-weight:700; letter-spacing:-.02em; }
-.demo-copy .feat p{ font-size:14.5px; color:var(--ink-2); margin-top:4px; }
-@media (max-width:900px){ .demo{ grid-template-columns:1fr; gap:50px; } }
-
-/* ============================================================
-   CATEGORIES grid
-   ============================================================ */
-.cat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:52px; }
-.cat{
-  background:var(--card); border:1px solid var(--line); border-radius:20px;
-  padding:24px 24px 26px; transition:transform .2s ease, border-color .2s ease;
-}
-.cat:hover{ transform:translateY(-4px); border-color:var(--ink); }
-.cat .cemoji{ font-size:26px; }
-.cat h4{ font-size:18px; font-weight:700; letter-spacing:-.02em; margin-top:16px; }
-.cat p{ font-size:13.5px; color:var(--ink-3); margin-top:5px; }
-@media (max-width:820px){ .cat-grid{ grid-template-columns:repeat(2,1fr); } }
-@media (max-width:500px){ .cat-grid{ grid-template-columns:1fr; } }
-
-/* ============================================================
-   VALUE PROPS
-   ============================================================ */
-.values{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:56px; }
-.value{ }
+/* ============ VALUES ============ */
+.values{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:52px; }
 .value .vnum{ font-size:13px; font-weight:700; color:var(--accent); letter-spacing:.06em; }
-.value h3{ font-size:24px; font-weight:700; letter-spacing:-.03em; margin-top:14px; }
-.value p{ font-size:15.5px; color:var(--ink-2); margin-top:12px; }
-.value .vbar{ height:1px; background:var(--line); margin-top:24px; }
-@media (max-width:820px){ .values{ grid-template-columns:1fr; gap:34px; } }
+.value h3{ font-size:23px; font-weight:700; letter-spacing:-.03em; margin-top:13px; }
+.value p{ font-size:15px; color:var(--ink-3); margin-top:11px; line-height:1.5; }
+.value .vbar{ height:1px; background:var(--rule); margin-top:22px; }
+@media (max-width:820px){ .values{ grid-template-columns:1fr; gap:32px; } }
 
-/* ============================================================
-   FAQ
-   ============================================================ */
-.faq{ max-width:780px; margin:52px auto 0; }
-.qa{ border-top:1px solid var(--line); padding:26px 0; }
-.qa:last-child{ border-bottom:1px solid var(--line); }
-.qa h4{ font-size:19px; font-weight:700; letter-spacing:-.02em; display:flex; justify-content:space-between; gap:20px; align-items:baseline; }
-.qa h4 .q{ flex:1; }
-.qa p{ font-size:15.5px; color:var(--ink-2); margin-top:12px; max-width:64ch; }
-
-/* ============================================================
-   CTA band
-   ============================================================ */
+/* ============ FAQ / CTA / FOOTER ============ */
+.faq{ max-width:780px; margin:48px auto 0; }
+.qa{ border-top:1px solid var(--rule); padding:24px 0; } .qa:last-child{ border-bottom:1px solid var(--rule); }
+.qa h4{ font-size:18px; font-weight:700; letter-spacing:-.02em; display:flex; justify-content:space-between; gap:20px; }
+.qa p{ font-size:15px; color:var(--ink-3); margin-top:11px; max-width:64ch; line-height:1.55; }
 .cta-band{ text-align:center; }
-.cta-card{
-  background:linear-gradient(135deg, var(--field-2), var(--field-1));
-  border-radius:clamp(28px,4vw,46px); padding:clamp(56px,8vw,96px) 32px;
-  color:#fff; position:relative; overflow:hidden; transition:background 1s ease;
-}
-.cta-card h2{ font-size:clamp(34px,5.5vw,64px); font-weight:700; letter-spacing:-.04em; line-height:1.02; max-width:18ch; margin:0 auto; }
-.cta-card p{ font-size:18px; opacity:.92; margin:20px auto 0; max-width:46ch; }
-.cta-card .btn-light{ background:#fff; color:var(--ink); margin-top:34px; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer{ padding:80px 0 50px; }
-.foot-top{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:30px; padding-bottom:46px; border-bottom:1px solid var(--line); }
-.foot-brand .brand{ font-size:24px; }
-.foot-brand p{ margin-top:16px; color:var(--ink-2); font-size:14.5px; max-width:34ch; }
-.foot-col h5{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
-.foot-col a{ display:block; margin-top:13px; font-size:14.5px; color:var(--ink-2); transition:color .15s; }
-.foot-col a:hover{ color:var(--ink); }
-.foot-bottom{ display:flex; justify-content:space-between; align-items:center; padding-top:26px; flex-wrap:wrap; gap:16px; }
-.foot-bottom .made{ font-size:13.5px; color:var(--ink-3); }
-.foot-bottom .legal{ display:flex; gap:22px; font-size:13px; color:var(--ink-3); }
+.cta-card{ background:linear-gradient(135deg,var(--field-3),var(--field-2)); border-radius:clamp(26px,4vw,44px); padding:clamp(54px,8vw,92px) 32px; color:#fff; }
+.cta-card h2{ font-family:var(--font-display); font-size:clamp(32px,5vw,60px); font-weight:600; letter-spacing:-.035em; line-height:1.02; max-width:18ch; margin:0 auto; }
+.cta-card p{ font-size:18px; opacity:.94; margin:18px auto 0; max-width:46ch; }
+.cta-card .btn-light{ background:#fff; color:var(--ink); margin-top:32px; }
+footer{ padding:74px 0 48px; }
+.foot-top{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:30px; padding-bottom:44px; border-bottom:1px solid var(--rule); }
+.foot-brand .brand{ font-size:23px; } .foot-brand p{ margin-top:15px; color:var(--ink-3); font-size:14px; max-width:34ch; line-height:1.5; }
+.foot-col h5{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-4); font-weight:600; }
+.foot-col a{ display:block; margin-top:12px; font-size:14px; color:var(--ink-3); } .foot-col a:hover{ color:var(--ink); }
+.foot-bottom{ display:flex; justify-content:space-between; align-items:center; padding-top:24px; flex-wrap:wrap; gap:14px; }
+.foot-bottom .made{ font-size:13px; color:var(--ink-4); } .foot-bottom .legal{ display:flex; gap:20px; font-size:13px; color:var(--ink-4); }
 @media (max-width:820px){ .foot-top{ grid-template-columns:1fr 1fr; } }
-
-@media (prefers-reduced-motion: reduce){
-  .row, .hero-field .blob, .swipecard.front, .swipe-badge{ animation:none !important; }
-}
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
 </style>
 </head>
 <body>
 
-<!-- ============ NAV ============ -->
-<nav>
-  <div class="nav-pill">
-    <a class="brand" href="#top"><span class="dot"></span> WKNDR</a>
-    <div class="nav-links">
-      <a href="#how">How it works</a>
-      <a href="#weather">Weather</a>
-      <a href="#faq">FAQ</a>
-    </div>
-    <a class="btn btn-accent" href="#download">Open WKNDR</a>
-  </div>
-</nav>
-
+<nav><div class="nav-pill">
+  <a class="brand" href="#top"><span class="dot"></span> WKNDR</a>
+  <div class="nav-links"><a href="#how">How it works</a><a href="#whatson">What's on</a><a href="#weather">Weather</a><a href="#faq">FAQ</a></div>
+  <a class="btn btn-accent" href="#download">Open WKNDR</a>
+</div></nav>
 <a id="top"></a>
 
 <!-- ============ HERO ============ -->
-<header class="hero">
-  <div class="hero-field" aria-hidden="true">
-    <span class="blob b1"></span>
-    <span class="blob b2"></span>
-    <span class="blob b3"></span>
-  </div>
-  <div class="wrap hero-inner">
-    <div class="weather-chip">
-      <span class="glyph" id="wxGlyph">☀</span>
-      <span>Right now in Amsterdam · <strong id="wxTemp">24°</strong></span>
-      <span class="mode-tag" id="wxMode">Hot</span>
+<header class="hero"><div class="wrap">
+  <div class="hero-field" aria-hidden="true"><span class="b b1"></span><span class="b b2"></span><span class="b b3"></span></div>
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="hero-chip"><span id="wxGlyph">🌤️</span><span>Right now in Amsterdam · <strong id="wxTemp">19°</strong></span><span class="mode-tag" id="wxMode">Warm</span></div>
+      <h1>Your weekend, <span class="swap">one swipe</span> away.</h1>
+      <p class="hero-sub">WKNDR reads the whole city, weather and all. Swipe a few cards, it learns your taste — and re-ranks the weekend to fit the day.</p>
+      <div class="hero-actions">
+        <a class="btn btn-accent" href="#download">Start swiping — it's free</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
+      <p class="hero-note">Free · Amsterdam · no account to start</p>
     </div>
-    <h1 class="hero-title">Your weekend, sorted by the <span class="swap">weather</span>.</h1>
-    <p class="hero-sub">WKNDR learns what you love, then re-ranks the whole city for this weekend's sky — an ever-refreshing wall of plans that fit the day.</p>
-    <div class="hero-actions">
-      <a class="btn btn-accent" href="#download">Start swiping — it's free</a>
-      <a class="btn btn-ghost" href="#how">See how it works</a>
+    <div class="deck-stage">
+      <div class="deck" id="deck" aria-label="Swipe demo"></div>
+      <div class="deck-actions">
+        <button class="act act-nope" id="actNope" aria-label="Pass">${'' /*x*/}<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button class="act act-save" id="actSave" aria-label="Save"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      </div>
+      <div class="deck-hint" id="deckHint"><span>← pass</span> · <b>drag a card</b> · <span>save →</span></div>
     </div>
-    <p class="hero-note">Free to use · Amsterdam · no account to start</p>
   </div>
+</div></header>
 
-  <!-- live bento of real weekend picks -->
-  <div class="wrap"><div class="bento" id="bento" aria-hidden="true"></div></div>
-</header>
-
-<!-- ============ SOURCE TRACE STRIP ============ -->
-<div class="sources">
-  <div class="wrap">
-    <div class="lbl">Reads the whole city, names its sources</div>
-    <div class="strip">
-      <span>Buienradar</span><span>Resident Advisor</span><span>I amsterdam</span>
-      <span>Paradiso</span><span>Time Out</span><span>Songkick</span>
-      <span>Kidsproof</span><span>Little Black Book</span><span>KNMI</span>
-    </div>
-  </div>
-</div>
+<!-- ============ SOURCES ============ -->
+<div class="sources"><div class="wrap">
+  <div class="lbl">Reads the whole city, names its sources</div>
+  <div class="strip"><span>Buienradar</span><span>Resident Advisor</span><span>I amsterdam</span><span>Paradiso</span><span>Time Out</span><span>Songkick</span><span>Kidsproof</span><span>Little Black Book</span><span>KNMI</span></div>
+</div></div>
 
 <!-- ============ HOW IT WORKS ============ -->
-<section id="how">
-  <div class="wrap">
-    <span class="eyebrow">How it works</span>
-    <h2 class="section-title">Three swipes from a real plan.</h2>
-    <p class="section-sub">No infinite feed, no doom-scroll. You teach it your taste once, the weather does the ranking, and your weekend assembles itself.</p>
-    <div class="steps">
-      <div class="step">
-        <span class="ico">👆</span>
-        <span class="num">01</span>
-        <h3>Swipe to train your taste</h3>
-        <p>Left, right, up to save, down to skip. A meaty first round teaches WKNDR what you're actually into — every swipe is a signal.</p>
-      </div>
-      <div class="step">
-        <span class="ico">🌤️</span>
-        <span class="num">02</span>
-        <h3>The weather re-ranks it all</h3>
-        <p>Every pick is scored against today's sky. A sunny 24° morning floats the canal swims and terraces; a grey washout surfaces the galleries.</p>
-      </div>
-      <div class="step">
-        <span class="ico">📍</span>
-        <span class="num">03</span>
-        <h3>Save it and go</h3>
-        <p>Your shortlist, weather-proofed and linked straight to the source. Switch between a calm list and a swipe stack whenever you like.</p>
-      </div>
-    </div>
+<section id="how"><div class="wrap">
+  <span class="eyebrow">How it works</span>
+  <h2 class="section-title">Three swipes from a real plan.</h2>
+  <p class="section-sub">No infinite feed, no doom-scroll. You teach it your taste once, the weather does the ranking, and your weekend assembles itself.</p>
+  <div class="steps">
+    <div class="step"><span class="ico">👆</span><span class="num">01</span><h3>Swipe to train your taste</h3><p>Right to save, left to pass. A meaty first round teaches WKNDR what you're actually into — every swipe is a signal.</p></div>
+    <div class="step"><span class="ico">🌤️</span><span class="num">02</span><h3>The weather re-ranks it all</h3><p>Every pick is scored against today's sky. A warm dry morning floats the terraces and canal swims; a washout surfaces the galleries.</p></div>
+    <div class="step"><span class="ico">📍</span><span class="num">03</span><h3>Save it and go</h3><p>Your shortlist, weather-proofed and linked to the source. Flip between a calm list and a swipe stack whenever you like.</p></div>
   </div>
-</section>
+</div></section>
+
+<!-- ============ A — WHAT'S ON (bento of real cards) ============ -->
+<section id="whatson"><div class="wrap">
+  <span class="eyebrow">What's on</span>
+  <h2 class="section-title">This weekend in Amsterdam.</h2>
+  <p class="section-sub">The same cards you swipe — image-led, weather-tagged, source-traced. A live wall of what's actually on.</p>
+  <div class="bento" id="bento" aria-hidden="true"></div>
+</div></section>
+
+<!-- ============ D — RANKED LIST ============ -->
+<section id="list" style="padding-top:0"><div class="wrap">
+  <span class="eyebrow">List ↔ Stack</span>
+  <h2 class="section-title">Or read it as a list.</h2>
+  <p class="section-sub">Lean back and swipe a deck, or scan the ranked list — same weather-aware pool, your call.</p>
+  <div class="listwrap" id="listwrap"></div>
+  <div class="list-foot"><a class="btn btn-dark" href="#download">Open the full weekend</a></div>
+</div></section>
 
 <!-- ============ WEATHER MODES ============ -->
-<section id="weather">
-  <div class="wrap">
-    <div class="modes">
-      <div class="wrap">
-        <span class="eyebrow">The weather engine</span>
-        <h2 class="section-title">Five skies. Five weekends.</h2>
-        <p class="section-sub">WKNDR sorts every Amsterdam forecast into five moods — and each one re-paints the app and re-orders your plans.</p>
-        <div class="mode-grid" id="modeGrid"></div>
-      </div>
-    </div>
-  </div>
-</section>
+<section id="weather"><div class="wrap"><div class="modes"><div class="wrap">
+  <span class="eyebrow">The weather engine</span>
+  <h2 class="section-title">Five skies. Five weekends.</h2>
+  <p class="section-sub">WKNDR sorts every Amsterdam forecast into five moods — and each one re-paints the app and re-orders your plans.</p>
+  <div class="mode-grid" id="modeGrid"></div>
+</div></div></div></section>
 
-<!-- ============ SWIPE DEMO ============ -->
-<section id="demo">
-  <div class="wrap demo">
-    <div class="demo-visual">
-      <div class="phone">
-        <div class="notch"></div>
-        <div class="screen">
-          <div class="pl-head">
-            <div class="pl-chip"><span>🌤️</span> Warm · 19° · today</div>
-            <div class="pl-title">This weekend</div>
-            <div class="pl-sub">Ranked for the weather + your taste</div>
-          </div>
-          <div class="pl-list" id="phoneList"></div>
-        </div>
-      </div>
-    </div>
-    <div class="demo-copy">
-      <span class="eyebrow">List ↔ Stack</span>
-      <h2 class="section-title">Stack it. Or list it.</h2>
-      <p class="section-sub">Same weather-ranked pool, two postures — lean back and swipe a deck, or scan a calm ranked list. Switch any time.</p>
-      <div class="feat">
-        <div class="fi">↔</div>
-        <div><h4>List ↔ Stack, your call</h4><p>Lean back and swipe a deck, or scan a calm ranked list. Same weather-aware pool, two postures.</p></div>
-      </div>
-      <div class="feat">
-        <div class="fi">🧭</div>
-        <div><h4>Knows what fits</h4><p>A little "why this fits" line on every card — the temperature, the rain odds, the room it's in.</p></div>
-      </div>
-      <div class="feat">
-        <div class="fi">🔁</div>
-        <div><h4>Pivots when the sky does</h4><p>Buienradar flips on you Saturday morning? Your plan quietly re-ranks for the new forecast.</p></div>
-      </div>
-    </div>
+<!-- ============ WHY ============ -->
+<section id="why"><div class="wrap">
+  <span class="eyebrow">Why it's different</span>
+  <h2 class="section-title">Not another events feed.</h2>
+  <div class="values">
+    <div class="value"><span class="vnum">01</span><h3>Weather is the lens</h3><p>Every other app is weather-blind. WKNDR makes the sky the organising idea — so the plan you get is the one that works on the day.</p><div class="vbar"></div></div>
+    <div class="value"><span class="vnum">02</span><h3>Trained on your taste</h3><p>A swipe-trained profile, not a settings screen. It quietly learns whether you're a market-and-coffee person or a basement-techno person.</p><div class="vbar"></div></div>
+    <div class="value"><span class="vnum">03</span><h3>Sources, named &amp; linked</h3><p>We read the city's best publications, credit each one, and link you straight out. Signal, not a walled garden.</p><div class="vbar"></div></div>
   </div>
-</section>
-
-<!-- ============ CATEGORIES ============ -->
-<section id="categories">
-  <div class="wrap">
-    <span class="eyebrow">What's on</span>
-    <h2 class="section-title">Nine kinds of weekend.</h2>
-    <p class="section-sub">An ever-refreshing pool across the city — re-ranked by the weather and your taste, never a stale list.</p>
-    <div class="cat-grid" id="catGrid"></div>
-  </div>
-</section>
-
-<!-- ============ VALUE PROPS ============ -->
-<section id="why">
-  <div class="wrap">
-    <span class="eyebrow">Why it's different</span>
-    <h2 class="section-title">Not another events feed.</h2>
-    <div class="values">
-      <div class="value">
-        <span class="vnum">01</span>
-        <h3>Weather is the lens</h3>
-        <p>Every other app is weather-blind. WKNDR makes the sky the organising idea — so the plan you get is the one that actually works on the day.</p>
-        <div class="vbar"></div>
-      </div>
-      <div class="value">
-        <span class="vnum">02</span>
-        <h3>Trained on your taste</h3>
-        <p>A swipe-trained profile, not a settings screen. It quietly learns whether you're a market-and-coffee person or a basement-techno person.</p>
-        <div class="vbar"></div>
-      </div>
-      <div class="value">
-        <span class="vnum">03</span>
-        <h3>Sources, named &amp; linked</h3>
-        <p>We read the city's best publications, credit each one, and link you straight out. Signal, not a walled garden.</p>
-        <div class="vbar"></div>
-      </div>
-    </div>
-  </div>
-</section>
+</div></section>
 
 <!-- ============ FAQ ============ -->
-<section id="faq">
-  <div class="wrap">
-    <span class="eyebrow">FAQ</span>
-    <h2 class="section-title">Good questions.</h2>
-    <div class="faq" id="faqList"></div>
-  </div>
-</section>
+<section id="faq"><div class="wrap">
+  <span class="eyebrow">FAQ</span>
+  <h2 class="section-title">Good questions.</h2>
+  <div class="faq" id="faqList"></div>
+</div></section>
 
-<!-- ============ CTA BAND ============ -->
-<section id="download" class="cta-band">
-  <div class="wrap">
-    <div class="cta-card">
-      <h2>Stop guessing your weekend.</h2>
-      <p>Check the sky, swipe a few cards, and go. WKNDR is free, and built for Amsterdam.</p>
-      <a class="btn btn-light" href="#top">Start swiping — it's free</a>
-    </div>
-  </div>
-</section>
+<!-- ============ CTA ============ -->
+<section id="download" class="cta-band"><div class="wrap"><div class="cta-card">
+  <h2>Stop guessing your weekend.</h2>
+  <p>Check the sky, swipe a few cards, and go. WKNDR is free, and built for Amsterdam.</p>
+  <a class="btn btn-light" href="#top">Start swiping — it's free</a>
+</div></div></section>
 
 <!-- ============ FOOTER ============ -->
-<footer>
-  <div class="wrap">
-    <div class="foot-top">
-      <div class="foot-brand">
-        <a class="brand" href="#top"><span class="dot"></span> WKNDR</a>
-        <p>The weather-aware weekend discovery engine for Amsterdam. Swipe-trained, source-traced, made for the day you've actually got.</p>
-      </div>
-      <div class="foot-col">
-        <h5>Product</h5>
-        <a href="#how">How it works</a>
-        <a href="#weather">Weather engine</a>
-        <a href="#categories">What's on</a>
-        <a href="#faq">FAQ</a>
-      </div>
-      <div class="foot-col">
-        <h5>City</h5>
-        <a href="#">Amsterdam</a>
-        <a href="#">Sources</a>
-        <a href="#">This weekend</a>
-        <a href="#">Request a city</a>
-      </div>
-      <div class="foot-col">
-        <h5>Social</h5>
-        <a href="#">Instagram</a>
-        <a href="#">Threads</a>
-        <a href="#">X / Twitter</a>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.6</span></div>
-      <div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
-    </div>
+<footer><div class="wrap">
+  <div class="foot-top">
+    <div class="foot-brand"><a class="brand" href="#top"><span class="dot"></span> WKNDR</a><p>The weather-aware weekend discovery engine for Amsterdam. Swipe-trained, source-traced, made for the day you've actually got.</p></div>
+    <div class="foot-col"><h5>Product</h5><a href="#how">How it works</a><a href="#whatson">What's on</a><a href="#weather">Weather engine</a><a href="#faq">FAQ</a></div>
+    <div class="foot-col"><h5>City</h5><a href="#">Amsterdam</a><a href="#">Sources</a><a href="#">This weekend</a><a href="#">Request a city</a></div>
+    <div class="foot-col"><h5>Social</h5><a href="#">Instagram</a><a href="#">Threads</a><a href="#">X / Twitter</a></div>
   </div>
-</footer>
+  <div class="foot-bottom"><div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.7</span></div><div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div></div>
+</div></footer>
 
 <script>
-/* ============================================================
-   Weather-mode data (carried from WKNDR app/src/weather/modes.ts)
-   ============================================================ */
+/* ===== weather modes (from app modes.ts) ===== */
 const MODES = {
-  HOT:      { label:'Hot',        glyph:'☀',  temp:'24°', cond:'HOT · DRY · keep water close',
-              phrase:'Properly hot by two. Chase the shade, keep water close.',
-              c1:'#ff9a3d', c2:'#c2310e', c3:'#5a1606', glow:'#ffd166', text:'#fbf7ef' },
-  WARM:     { label:'Warm',       glyph:'🌤️', temp:'19°', cond:'WARM · DRY · gentle breeze',
-              phrase:'A soft, generous day — choose your own adventure.',
-              c1:'#d8e08a', c2:'#6fa24a', c3:'#2c4a26', glow:'#fff0b0', text:'#1d2a17' },
-  COOL:     { label:'Cool',       glyph:'🍃', temp:'13°', cond:'COOL · CLEAR · crisp air',
-              phrase:'Crisp and clear. Layer up — the whole city is walkable.',
-              c1:'#9fc0b8', c2:'#4a716b', c3:'#1e3433', glow:'#cfe6df', text:'#f4f8f7' },
-  COLD_WET: { label:'Cold & wet', glyph:'🌧️', temp:'7°',  cond:'COLD · WET · an indoor day',
-              phrase:'Grey and wet through the afternoon. An indoor day, well spent.',
-              c1:'#6c7e9c', c2:'#313f5e', c3:'#121a2e', glow:'#9fb2cc', text:'#eef2f7' },
-  VOLATILE: { label:'Volatile',   glyph:'⛅', temp:'16°', cond:'VOLATILE · sun then storms',
-              phrase:"It can't decide. Keep a backup plan and a rain layer in the bag.",
-              c1:'#e08a4a', c2:'#7a5a7a', c3:'#2a3358', glow:'#ffcf8a', text:'#f6f1ee' },
+  HOT:{label:'Hot',glyph:'☀',temp:'24°',cond:'HOT · DRY · keep water close',phrase:'Properly hot by two. Chase the shade, keep water close.',c1:'#ff9a3d',c2:'#c2310e',c3:'#5a1606',glow:'#ffd166',text:'#fbf7ef'},
+  WARM:{label:'Warm',glyph:'🌤️',temp:'19°',cond:'WARM · DRY · gentle breeze',phrase:'A soft, generous day — choose your own adventure.',c1:'#d8e08a',c2:'#6fa24a',c3:'#2c4a26',glow:'#fff0b0',text:'#1d2a17'},
+  COOL:{label:'Cool',glyph:'🍃',temp:'13°',cond:'COOL · CLEAR · crisp air',phrase:'Crisp and clear. Layer up — the whole city is walkable.',c1:'#9fc0b8',c2:'#4a716b',c3:'#1e3433',glow:'#cfe6df',text:'#f4f8f7'},
+  COLD_WET:{label:'Cold & wet',glyph:'🌧️',temp:'7°',cond:'COLD · WET · an indoor day',phrase:'Grey and wet through the afternoon. An indoor day, well spent.',c1:'#6c7e9c',c2:'#313f5e',c3:'#121a2e',glow:'#9fb2cc',text:'#eef2f7'},
+  VOLATILE:{label:'Volatile',glyph:'⛅',temp:'16°',cond:'VOLATILE · sun then storms',phrase:"It can't decide. Keep a backup plan and a rain layer in the bag.",c1:'#e08a4a',c2:'#7a5a7a',c3:'#2a3358',glow:'#ffcf8a',text:'#f6f1ee'},
 };
-const ORDER = ['HOT','WARM','COOL','COLD_WET','VOLATILE'];
+const ORDER=['HOT','WARM','COOL','COLD_WET','VOLATILE'];
+const TODAY='WARM';   // the hero's "today" — drives the Perfect-today signal
+const coverGlow=(m)=>`radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;
 
-const cover = (m) => `linear-gradient(150deg, ${m.c1} 0%, ${m.c2} 55%, ${m.c3} 100%)`;
-const coverGlow = (m) => `radial-gradient(120% 90% at 25% 18%, ${m.glow}cc, transparent 55%), linear-gradient(150deg, ${m.c1}, ${m.c2} 60%, ${m.c3})`;
+const CAT={live:'Live & gigs',art:'Art & galleries',stage:'Stage & screen',eat:'Eat',drink:'Drink',market:'Markets',out:'Out & about',daytrip:'Day-trip'};
 
-/* ---------- real content (curated from ~/Code/wkndr app/src/data/picks.ts, weekend 5–7 Jun) ---------- */
-const PICKS = [
-  {t:'FKA twigs + Yves Tumor', v:'Ziggo Dome · Zuidoost', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/7413669/huge_avatar', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
-  {t:'Red Light Jazz Festival', v:'De Wallen · Centrum', when:'Fri–Sun 5–7 Jun', cat:'Live & gigs', src:'I amsterdam', img:'https://redlightjazz.com/wp-content/uploads/2025/05/sabrina-starke-at-red-light-jazz-uitgelicht.webp', fit:['WARM','COOL','COLD_WET','VOLATILE']},
-  {t:'Jungle by Night', v:'Vondelpark Openluchttheater', when:'Sun 7 Jun · free', cat:'Live & gigs', src:'Songkick', img:'https://upload.wikimedia.org/wikipedia/commons/c/c2/Jungle_by_Night.jpg', fit:['HOT','WARM','COOL']},
-  {t:'Noordermarkt', v:'Noordermarkt square · Jordaan', when:'Sat 6 Jun · 09:00', cat:'Markets', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/66791e9931e55c556280c599/1800x1020.jpg', fit:['HOT','WARM','COOL']},
-  {t:'Sunday Market — Westergas', v:'Westergasfabriek · West', when:'Sun 7 Jun · 12:00', cat:'Markets', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/60913a7a5e56be4386f24851/sunday%20market%20westergas.webp', fit:['HOT','WARM','COOL']},
-  {t:'Zaanse Schans windmills', v:'Zaandam · 17 min', when:'Daily', cat:'Day-trip', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Beautiful-windmills-at-Zaanse-Schans-daytrip-near-Amsterdam-Holland-Netherlands.jpg', fit:['HOT','WARM','COOL']},
-  {t:'Foodhallen', v:'De Hallen · West', when:'Daily · 11:00', cat:'Eat', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg/1280px-Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
-  {t:'Eye Filmmuseum', v:'Eye · Noord', when:'Daily', cat:'Stage & screen', src:'Eye programme', img:'https://assets.eyefilm.nl/images/_1200x630_crop_center-center_none/Foto-EYE-Marcus-Koppen-bijgesneden-2_2021-04-12-140514.jpeg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
-  {t:'Pllek — waterfront hang', v:'NDSM · Noord', when:'Daily · lunch–late', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE']},
-  {t:'Wynand Fockink jenever', v:'Centrum', when:'Daily · 14:00', cat:'Drink', src:'Your Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Wynand_Focking_Amsterdam_2014_%284%29.jpg/1280px-Wynand_Focking_Amsterdam_2014_%284%29.jpg', fit:['COOL','COLD_WET','VOLATILE']},
-  {t:'Amsterdam Open Air', v:'Gaasperpark · Zuidoost', when:'Sat–Sun 6–7 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.unsplash.com/photo-1761926826313-a1787661b7b6?w=1200&q=80', fit:['HOT','WARM']},
-  {t:'909 Festival', v:'Amsterdamse Bos · Amstelveen', when:'Sat–Sun 6–7 Jun', cat:'Live & gigs', src:'I amsterdam', img:'https://framerusercontent.com/assets/zKisd6fZKSwFKx4QHS96VbG1XI.jpg', fit:['HOT','WARM']},
-  {t:'Samora Pinderhughes', v:'Bimhuis · Oosterdok', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/8574519/huge_avatar', fit:['COOL','COLD_WET','VOLATILE']},
-  {t:'Motor City Drum Ensemble', v:'NDSM · Noord', when:'Sat 6 Jun', cat:'Live & gigs', src:'Songkick', img:'https://www.attackmagazine.com/wp-content/uploads/2012/09/6_MCDE_by_Stefan_Braunbarth.png', fit:['WARM','COOL','COLD_WET','VOLATILE']},
-  {t:'Moeders — Dutch home cooking', v:'Jordaan · dinner', when:'Daily', cat:'Eat', src:'Het Parool', img:'https://images.unsplash.com/photo-1723511413901-99439b957bbf?w=1200&q=80', fit:['COOL','COLD_WET','VOLATILE']},
-  {t:'Haarlem — the easy escape', v:'15 min by train', when:'Daily · Sat market', cat:'Day-trip', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Amsterdam-5-scaled-e1649411586356.jpg', fit:['HOT','WARM','COOL']},
-  {t:'Sauna Deco — Art Deco baths', v:'Centrum', when:'Daily · 12:00', cat:'Out & about', src:'I amsterdam', img:'https://images.unsplash.com/photo-1757940556610-a114be4733bf?w=1200&q=80', fit:['COOL','COLD_WET','VOLATILE']},
-  {t:'Amsterdam Sevens Rugby', v:'Sportpark de Eendracht · West', when:'Sat–Sun 6–7 Jun', cat:'Out & about', src:'I amsterdam', img:'https://media.iamsterdam.com/w_1080/69yh4j7g2d4u-rtxp.jpg', fit:['HOT','WARM']},
-  {t:'Tony’s Chocolonely Store', v:'West', when:'Daily · 10:00', cat:'Eat', src:'Kidsproof', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Tony%27s_Chocolonely_shop_Amsterdam.jpg/1280px-Tony%27s_Chocolonely_shop_Amsterdam.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE']},
+/* ===== real content (curated from ~/Code/wkndr app/src/data/picks.ts) ===== */
+const PICKS=[
+  {id:'fka', t:'FKA twigs + Yves Tumor', v:'Ziggo Dome · Zuidoost', when:'Sat · 18:00', cat:'live', src:'Songkick', img:'https://images.sk-static.com/images/media/profile_images/artists/7413669/huge_avatar', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'weekend'},
+  {id:'rlj', t:'Red Light Jazz Festival', v:'De Wallen · Centrum', when:'Fri–Sun', cat:'live', src:'I amsterdam', img:'https://redlightjazz.com/wp-content/uploads/2025/05/sabrina-starke-at-red-light-jazz-uitgelicht.webp', fit:['WARM','COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'weekend'},
+  {id:'jbn', t:'Jungle by Night', v:'Vondelpark · Zuid', when:'Sun · 16:00', cat:'live', src:'Songkick', img:'https://upload.wikimedia.org/wikipedia/commons/c/c2/Jungle_by_Night.jpg', fit:['HOT','WARM','COOL'], outdoor:true, fresh:'weekend'},
+  {id:'noord', t:'Noordermarkt', v:'Jordaan', when:'Sat · 09:00', cat:'market', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/66791e9931e55c556280c599/1800x1020.jpg', fit:['HOT','WARM','COOL'], outdoor:true, fresh:'weekend'},
+  {id:'sun', t:'Sunday Market', v:'Westergas · West', when:'Sun · 12:00', cat:'market', src:'I amsterdam', img:'https://app.thefeedfactory.nl/api/assets/60913a7a5e56be4386f24851/sunday%20market%20westergas.webp', fit:['HOT','WARM','COOL'], outdoor:true, fresh:'weekend'},
+  {id:'zaan', t:'Zaanse Schans windmills', v:'Zaandam · 17 min', when:'Daily', cat:'daytrip', src:'The Dutch Review', img:'https://dutchreview.com/wp-content/uploads/Beautiful-windmills-at-Zaanse-Schans-daytrip-near-Amsterdam-Holland-Netherlands.jpg', fit:['HOT','WARM','COOL'], outdoor:true, fresh:'always'},
+  {id:'food', t:'Foodhallen', v:'De Hallen · West', when:'Daily · 11:00', cat:'eat', src:'Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg/1280px-Foodhallen_in_Oud-West_%28Amsterdam%2C_The_Netherlands_2017%29_%2834245643041%29.jpg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'always'},
+  {id:'eye', t:'Eye Filmmuseum', v:'Eye · Noord', when:'Daily', cat:'stage', src:'Eye', img:'https://assets.eyefilm.nl/images/_1200x630_crop_center-center_none/Foto-EYE-Marcus-Koppen-bijgesneden-2_2021-04-12-140514.jpeg', fit:['HOT','WARM','COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'always'},
+  {id:'pllek', t:'Pllek — waterfront', v:'NDSM · Noord', when:'Daily', cat:'drink', src:'Little Black Book', img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Stadsstrand_Pllek.JPG/1280px-Stadsstrand_Pllek.JPG', fit:['WARM','COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'always'},
+  {id:'mcde', t:'Motor City Drum Ensemble', v:'NDSM · Noord', when:'Sat · 23:00', cat:'live', src:'Songkick', img:'https://www.attackmagazine.com/wp-content/uploads/2012/09/6_MCDE_by_Stefan_Braunbarth.png', fit:['WARM','COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'weekend'},
+  {id:'sauna', t:'Sauna Deco', v:'Centrum', when:'Daily · 12:00', cat:'out', src:'I amsterdam', img:'https://images.unsplash.com/photo-1757940556610-a114be4733bf?w=1200&q=80', fit:['COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'always'},
+  {id:'moeders', t:'Moeders', v:'Jordaan · dinner', when:'Daily', cat:'eat', src:'Het Parool', img:'https://images.unsplash.com/photo-1723511413901-99439b957bbf?w=1200&q=80', fit:['COOL','COLD_WET','VOLATILE'], outdoor:false, fresh:'always'},
 ];
-function fitPill(fit){
-  const wet=fit.includes('COLD_WET'),hot=fit.includes('HOT'),warm=fit.includes('WARM'),cool=fit.includes('COOL');
-  if(hot&&wet) return 'Rain or shine';
-  if(hot) return 'Best when sunny';
-  if(warm&&!wet) return 'Best when warm';
-  if(wet) return 'Best on a wet day';
-  if(cool) return 'Best when cool';
-  return 'Any weather';
+
+/* the one signal pill (mirrors app cardSignal priority, simplified) */
+function signal(p){
+  if(p.fit[0]===TODAY) return {text:'Perfect today', tone:'accent', glow:true};
+  if(p.fresh==='weekend') return {text:'This weekend', tone:'dim'};
+  if(p.fit.includes(TODAY)) return {text:'Good today', tone:'green'};
+  return null;
 }
-const coverBg = (fit)=> coverGlow(MODES[fit[0]]);
-function faceInner(p){
-  return `<div class="cover"><div class="g" style="background:${coverBg(p.fit)}"></div><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.remove()" alt=""><div class="grad"></div></div>
-    <span class="fitpill">${fitPill(p.fit)}</span>
-    <div class="info"><div class="t">${p.t}</div><div class="m">${p.v} · ${p.when}</div></div>`;
-}
+const CLOCK='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+const PLUS='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
-/* ---------- hero bento + live two-faced card flip (the pool re-ranks in real time) ---------- */
-const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const BENTO_LAYOUT = ['feat','','','tall','tall','',''];   // feat = 2×2, tall = 2 rows
-const bentoEl = document.getElementById('bento');
-let shown = PICKS.slice(0, BENTO_LAYOUT.length);
-let bench = PICKS.slice(BENTO_LAYOUT.length);
-bentoEl.innerHTML = shown.map((p,i)=>
-  `<article class="pcard ${BENTO_LAYOUT[i]}"><div class="flip"><div class="face front">${faceInner(p)}</div><div class="face back"></div></div></article>`
-).join('');
-const tiles = [...bentoEl.querySelectorAll('.pcard')];
-tiles.forEach(t=>{ t._rot = 0; t._busy = false; });
-
-let lastIdx = -1, flipTimer = null;
-function flipNext(){
-  if(!bench.length) return;
-  let idx, guard = 0;
-  do { idx = Math.floor(Math.random() * tiles.length); guard++; }
-  while((idx === lastIdx || tiles[idx]._busy) && guard < 24);
-  const tile = tiles[idx];
-  if(tile._busy) return;
-  lastIdx = idx;
-
-  const incoming = bench.shift();
-  bench.push(shown[idx]);
-  shown[idx] = incoming;
-
-  const flip = tile.querySelector('.flip');
-  const from = tile._rot;
-  const to = from + 180;
-  // render the incoming pick onto the currently-hidden face, then rotate it into view
-  const hidden = tile.querySelector((from % 360 === 0) ? '.face.back' : '.face.front');
-  hidden.innerHTML = faceInner(incoming);
-
-  tile._busy = true;
-  tile.classList.add('lift');
-  const anim = flip.animate([
-    { transform:`rotateY(${from}deg) translateZ(0) scale(1)` },
-    { transform:`rotateY(${from + 90}deg) translateZ(40px) scale(1.02)`, offset:.5 },
-    { transform:`rotateY(${to}deg) translateZ(0) scale(1)` },
-  ], { duration:780, easing:'cubic-bezier(.5,0,.2,1)', fill:'forwards' });
-  // bake the end state on a timer (robust even if the tab is backgrounded and WAAPI pauses)
-  setTimeout(()=>{
-    flip.style.transform = `rotateY(${to % 360}deg)`;
-    anim.cancel();
-    tile._rot = to % 360;
-    tile.classList.remove('lift');
-    tile._busy = false;
-  }, 820);
-}
-const flipDelay = ()=> 1900 + Math.random() * 900;   // 1.9–2.8s, varied so it isn't metronomic
-const bentoStop = ()=>{ if(flipTimer){ clearTimeout(flipTimer); flipTimer = null; } };
-const bentoPlay = ()=>{ if(prefersReduce) return; bentoStop(); const loop = ()=>{ flipNext(); flipTimer = setTimeout(loop, flipDelay()); }; flipTimer = setTimeout(loop, flipDelay()); };
-bentoEl.addEventListener('mouseenter', bentoStop);
-bentoEl.addEventListener('mouseleave', bentoPlay);
-bentoPlay();
-
-/* ---------- weather mode cards ---------- */
-document.getElementById('modeGrid').innerHTML = ORDER.map(k=>{
-  const m = MODES[k];
-  const dark = (m.text.charCodeAt(1) < 0x39); // rough: dark text for light palettes
-  return `<div class="mode-card" data-mode="${k}" style="color:${m.text}">
-    <div class="swatch" style="background:${coverGlow(m)}"></div>
-    <div class="body">
-      <div class="mlabel">${m.glyph} ${m.label}</div>
-      <div class="mcond mono">${m.cond}</div>
-      <div class="mphrase">${m.phrase}</div>
+/* the real Card front (from Card.tsx) */
+function buildCard(p){
+  const sig=signal(p);
+  const temp = p.outdoor ? `<span class="card-when-temp">${MODES[TODAY].temp}</span>` : '';
+  const bg = p.img ? ` style="background-image:url(${p.img})"` : '';
+  const posterCls = p.img ? '' : ` poster poster--${p.cat}`;
+  return `<article class="card${posterCls}"${bg}>
+    <div class="card-scrim"></div>
+    <div class="card-top">
+      <span class="card-when">${CLOCK}<span class="card-when-text">${p.when}</span>${temp}</span>
+      ${sig?`<span class="card-signal card-signal--${sig.tone}${sig.glow?' card-signal--glow':''}">${sig.text}</span>`:''}
     </div>
-  </div>`;
+    <span class="card-expand">${PLUS}</span>
+    <div class="card-body"><div class="card-cat">${CAT[p.cat]}</div><h2 class="card-title">${p.t}</h2><div class="card-venue">${p.v}</div></div>
+  </article>`;
+}
+
+/* ===== interactive swipe deck (real physics, vanilla) ===== */
+const deck=document.getElementById('deck'), hint=document.getElementById('deckHint');
+let queue=PICKS.slice(0,7);
+const BASE=[{s:1,y:0},{s:0.95,y:14},{s:0.90,y:28}];
+const TILT=[-1.6,2.0,-3.0];
+function deckHTML(p,i){
+  const overlays = i===0 ? `<div class="swipe-tint red"></div><div class="swipe-tint green"></div>
+    <div class="stamp" data-stamp="nope"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    <div class="stamp" data-stamp="like"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
+  return `<div class="deck-card${i===0?' top':''}" data-i="${i}" style="z-index:${10-i}">${buildCard(p)}${overlays}</div>`;
+}
+function baseTransform(i){ const b=BASE[i]||BASE[2]; return `translate(0px, ${b.y}px) scale(${b.s}) rotate(${TILT[i]||0}deg)`; }
+function renderDeck(){
+  deck.innerHTML=queue.slice(0,3).map((p,i)=>deckHTML(p,i)).join('');
+  [...deck.children].forEach((el,i)=>{ el.style.transition='transform .42s var(--ease-out)'; el.style.transform=baseTransform(i); });
+  bindTop();
+}
+let drag=null;
+function bindTop(){
+  const top=deck.querySelector('.deck-card.top'); if(!top) return;
+  const red=top.querySelector('.swipe-tint.red'), green=top.querySelector('.swipe-tint.green');
+  const sNope=top.querySelector('[data-stamp="nope"]'), sLike=top.querySelector('[data-stamp="like"]');
+  top.addEventListener('pointerdown', e=>{
+    drag={id:e.pointerId,x0:e.clientX,y0:e.clientY,el:top}; try{ top.setPointerCapture(e.pointerId); }catch(_){}
+    top.style.transition='none'; hint.style.opacity='0';
+  });
+  top.addEventListener('pointermove', e=>{
+    if(!drag||drag.id!==e.pointerId) return;
+    const dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+    const rot=Math.max(-18,Math.min(18,dx*0.05));
+    top.style.transform=`translate(${dx}px, ${dy*0.4}px) rotate(${rot}deg)`;
+    const g=Math.max(0,Math.min(1,dx/104)), r=Math.max(0,Math.min(1,-dx/104));
+    green.style.opacity=g; red.style.opacity=r;
+    sLike.style.opacity=g; sLike.style.transform=`scale(${0.6+g*0.4}) rotate(6deg)`;
+    sNope.style.opacity=r; sNope.style.transform=`scale(${0.6+r*0.4}) rotate(-6deg)`;
+    const prog=Math.min(1,Math.hypot(dx,dy)/140);
+    [...deck.children].forEach((el,i)=>{ if(i===0) return; const from=BASE[i],to=BASE[i-1]; const s=from.s+(to.s-from.s)*prog, y=from.y+(to.y-from.y)*prog, rt=(TILT[i]||0)*(1-prog)+(TILT[i-1]||0)*prog; el.style.transition='none'; el.style.transform=`translate(0px, ${y}px) scale(${s}) rotate(${rt}deg)`; });
+  });
+  function release(e){
+    if(!drag||drag.id!==e.pointerId) return;
+    const dx=e.clientX-drag.x0, dy=e.clientY-drag.y0; drag=null;
+    if(dx>105) return fling('like'); if(dx<-105) return fling('nope');
+    // spring home
+    top.style.transition='transform .4s var(--ease-spring)'; top.style.transform=baseTransform(0);
+    red.style.opacity=0; green.style.opacity=0; sLike.style.opacity=0; sNope.style.opacity=0;
+    [...deck.children].forEach((el,i)=>{ el.style.transition='transform .42s var(--ease-out)'; el.style.transform=baseTransform(i); });
+  }
+  top.addEventListener('pointerup', release);
+  top.addEventListener('pointercancel', release);
+}
+function fling(dir){
+  const top=deck.querySelector('.deck-card.top'); if(!top) return;
+  const off = dir==='nope' ? -1 : 1;
+  const W=deck.getBoundingClientRect().width;
+  top.style.transition='transform .52s cubic-bezier(.3,.18,.28,1), opacity .52s ease';
+  top.style.transform=`translate(${off*(W+260)}px, -60px) rotate(${off*22}deg) scale(1.04)`;
+  top.style.opacity='0';
+  const g=top.querySelector('.swipe-tint.'+(dir==='like'?'green':'red')); if(g) g.style.opacity=0.9;
+  // advance cards behind immediately
+  [...deck.children].forEach((el,i)=>{ if(i===0) return; el.style.transition='transform .5s var(--ease-out)'; el.style.transform=baseTransform(i-1); });
+  setTimeout(()=>{ queue.push(queue.shift()); renderDeck(); }, 430);
+}
+document.getElementById('actNope').addEventListener('click', ()=>fling('nope'));
+document.getElementById('actSave').addEventListener('click', ()=>fling('like'));
+renderDeck();
+
+/* ===== A — bento of real cards ===== */
+const bentoOrder=['fka','jbn','noord','zaan','pllek','sun','eye'];
+const byId=id=>PICKS.find(p=>p.id===id);
+document.getElementById('bento').innerHTML=bentoOrder.map((id,i)=>{
+  const cls=i===0?'feat':(i===3||i===4?'tall':'');
+  // reuse buildCard but add the size class to the .card element
+  return buildCard(byId(id)).replace('class="card', `class="card ${cls}`);
 }).join('');
-// clicking a mode card previews that weather across the whole page
-document.querySelectorAll('.mode-card').forEach(c=>{
-  c.addEventListener('click', ()=> setMode(c.dataset.mode, true));
-});
 
-/* ---------- categories ---------- */
-const CATS = [
-  ['🎷','Live music','Basements to canal-side stages'],
-  ['🖼️','Museums & shows','Late openings, new wings'],
-  ['🌳','Outdoors','Parks, swims, long walks'],
-  ['🍷','Food & drink','Terraces, natural wine, markets'],
-  ['🛍️','Markets','Noordermarkt to flea finds'],
-  ['🧸','With kids','Castles, boats, pancake runs'],
-  ['🌙','Nightlife','After-dark, for any forecast'],
-  ['🚲','Day trips','When the sky says leave town'],
-  ['✨','Free & spontaneous','Good and costs nothing'],
+/* ===== D — ranked list (real rows) ===== */
+const listOrder=['rlj','fka','jbn','noord','eye','pllek'];
+document.getElementById('listwrap').innerHTML=listOrder.map(id=>{
+  const p=byId(id); const sig=signal(p);
+  const perfect = (sig&&sig.text==='Perfect today') ? `<span class="row-perfect">Perfect today</span>` : (p.fresh==='weekend'?`<span class="row-fresh">This weekend</span>`:'');
+  return `<div class="row"><div class="row-inner">
+    <div class="row-thumb" style="background-image:url(${p.img}); background-color:${p.img?'':'#'+'2a2540'}"></div>
+    <div class="row-main">
+      <div class="row-tags">${perfect}<span class="row-cat">${CAT[p.cat]}</span></div>
+      <div class="row-title">${p.t}</div>
+      <div class="row-meta"><span class="row-when">${p.when}</span> · ${p.v} · via ${p.src}</div>
+    </div>
+    <button class="row-save" aria-label="Save"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+  </div></div>`;
+}).join('');
+document.querySelectorAll('.row-save').forEach(b=> b.addEventListener('click', ()=> b.classList.toggle('on')));
+
+/* ===== weather modes ===== */
+document.getElementById('modeGrid').innerHTML=ORDER.map(k=>{ const m=MODES[k];
+  return `<div class="mode-card" data-mode="${k}" style="color:${m.text}"><div class="swatch" style="background:${coverGlow(m)}"></div><div class="body"><div class="mlabel">${m.glyph} ${m.label}</div><div class="mcond mono">${m.cond}</div><div class="mphrase">${m.phrase}</div></div></div>`;
+}).join('');
+
+/* ===== FAQ ===== */
+const FAQ=[
+  ['Is WKNDR really free?','Yes — the core weekend discovery is free. It\'s built for Amsterdam first, by people who live here.'],
+  ['Do I need an account?','No. Start swiping straight away; your taste profile lives on your device. Sign in later only if you want it to follow you across phones.'],
+  ['How does the weather part work?','WKNDR pulls live forecasts from Buienradar and KNMI, sorts the day into one of five weather modes, and scores every pick against it — so a wet Saturday and a hot one give genuinely different plans.'],
+  ['Where do the events come from?','We read the city\'s best listings — Resident Advisor, I amsterdam, Paradiso, Time Out, Kidsproof and more — name each source, and link you straight out. We signal and credit; we never republish.'],
+  ['Which cities are supported?','Amsterdam, deeply, for now. We\'d rather be excellent in one city than thin across many. Request your city from the footer.'],
 ];
-document.getElementById('catGrid').innerHTML = CATS.map(c=>
-  `<div class="cat"><div class="cemoji">${c[0]}</div><h4>${c[1]}</h4><p>${c[2]}</p></div>`
-).join('');
-
-/* ---------- demo phone: this-weekend list ---------- */
-document.getElementById('phoneList').innerHTML = PICKS.slice(0,5).map(p=>
-  `<div class="pl-row"><div class="th"><div class="g" style="background:${coverBg(p.fit)}"></div><img src="${p.img}" referrerpolicy="no-referrer" onerror="this.remove()" alt=""></div><div class="tx"><div class="t">${p.t}</div><div class="v">${p.v}</div></div><div class="pf">${fitPill(p.fit)}</div></div>`
-).join('');
-
-/* ---------- FAQ ---------- */
-const FAQ = [
-  ['Is WKNDR really free?', 'Yes — the core weekend discovery is free to use. It\'s built for Amsterdam first, by people who actually live here.'],
-  ['Do I need an account?', 'No. You can start swiping straight away. Your taste profile lives on your device; sign in later only if you want it to follow you across phones.'],
-  ['How does the weather part actually work?', 'WKNDR pulls live forecasts from Buienradar and KNMI, sorts the day into one of five weather modes, and scores every pick against it — so a wet Saturday and a hot one give you genuinely different plans.'],
-  ['Where do the events come from?', 'We read the city\'s best listings and publications — Resident Advisor, I amsterdam, Paradiso, Time Out, Kidsproof and more — name each source, and link you straight out to them. We signal and credit; we never republish.'],
-  ['Which cities are supported?', 'Amsterdam, deeply, for now. We\'d rather be excellent in one city than thin across many. You can request your city from the footer.'],
-];
-document.getElementById('faqList').innerHTML = FAQ.map(f=>
-  `<div class="qa"><h4><span class="q">${f[0]}</span><span style="color:var(--ink-3);font-weight:400">＋</span></h4><p>${f[1]}</p></div>`
-).join('');
-
-/* ============================================================
-   Live weather cycle — the signature touch.
-   Rotates the ambient field + chip + CTA through the 5 modes,
-   demonstrating "the weather re-ranks everything".
-   ============================================================ */
-const root = document.documentElement;
-function setMode(key){
-  const m = MODES[key];
-  root.style.setProperty('--field-1', m.c1);
-  root.style.setProperty('--field-2', m.c2);
-  root.style.setProperty('--field-3', m.c3);
-  root.style.setProperty('--field-glow', m.glow);
-  root.setAttribute('data-mode', key);
-  document.getElementById('wxGlyph').textContent = m.glyph;
-  document.getElementById('wxTemp').textContent = m.temp;
-  document.getElementById('wxMode').textContent = m.label;
-}
-let mi = 0;
-setMode(ORDER[0]);
-const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if(!reduce){
-  setInterval(()=>{ mi = (mi+1) % ORDER.length; setMode(ORDER[mi]); }, 4200);
-}
+document.getElementById('faqList').innerHTML=FAQ.map(f=>`<div class="qa"><h4><span>${f[0]}</span><span style="color:var(--ink-4);font-weight:400">＋</span></h4><p>${f[1]}</p></div>`).join('');
 </script>
 </body>
 </html>

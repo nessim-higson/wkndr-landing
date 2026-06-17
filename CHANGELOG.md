@@ -7,6 +7,20 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.7 — 2026-06-17 — swipe-first rebuild on the real app UI
+- Rebuilt the site around WKNDR's **actual app UI** (tokens, Card, SwipeStack, ListView
+  lifted from `~/Code/wkndr/app/src`): Clash Display + Helvetica, paper/ink/accent tokens,
+  film-grain overlay, the real image-led card (frosted "when" ticket-stamp, one signal pill,
+  category eyebrow, title over scrim).
+- **Hero now leads with the swipe mechanic** (chosen direction C, editorial split): a fully
+  **interactive, draggable swipe deck** reproducing the app physics in vanilla JS — tilt,
+  red/green wash, glass ✓/✕ stamps, fling-to-commit, ✕/★ dock, non-destructive recycle.
+- **A** — "What's on" bento gallery built from the same real cards.
+- **D** — "Or read it as a list" ranked rows reproducing the app's ListView.
+- Kept the weather-engine section, sources strip, how-it-works, values, FAQ, CTA, footer.
+- Earlier hero explorations preserved: `alternatives.html` (A/B/C/D), `fresh.html` (E–H),
+  `shuffle.html`.
+
 ## v1.6 — 2026-06-10
 - Reverted the source strip back to plain **type wordmarks** (dropped the monogram chips).
 - **Fixed mirror-reversed text mid-flip**: an `overflow:hidden` perspective parent (`.pcard`)
