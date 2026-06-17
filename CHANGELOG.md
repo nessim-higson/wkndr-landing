@@ -7,6 +7,19 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.8 — 2026-06-17 — matching becomes the story; cards match the app
+- **Added a prominent Match section** — WKNDR's social hook. Reproduces the app's signature
+  "It's a match" slam (You + partner avatars, sparkle, the shared pick card "you both want to
+  go here") next to "Swipe together. Match. Go." + a 3-step how-to. This was missing entirely.
+- **Rebalanced the positioning** away from "we train an algorithm on your taste" and
+  "weather is the whole thesis" → swipe + match lead; weather is one smart input (kept the
+  weather-engine section, softened the claims). Hero sub + how-it-works + value props rewritten.
+- **Cards now match the real app front exactly** — dropped the category eyebrow + venue I'd
+  added; the front is just the frosted when-stamp, one signal pill, and the title (fixes the
+  cramped small bento tiles too). Venue/source still live in the list rows.
+- **Sources are now a scrolling ticker** (full-bleed marquee, edge-faded, pause on hover)
+  instead of a static row.
+
 ## v1.7 — 2026-06-17 — swipe-first rebuild on the real app UI
 - Rebuilt the site around WKNDR's **actual app UI** (tokens, Card, SwipeStack, ListView
   lifted from `~/Code/wkndr/app/src`): Clash Display + Helvetica, paper/ink/accent tokens,
