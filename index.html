@@ -132,8 +132,14 @@ nav{ position:fixed; top:16px; left:0; right:0; z-index:100; display:flex; justi
 .match-steps{ list-style:none; margin:26px 0 28px; display:flex; flex-direction:column; gap:12px; }
 .match-steps li{ display:flex; align-items:center; gap:12px; font-size:15.5px; font-weight:600; color:var(--ink-2); letter-spacing:-.01em; }
 .match-steps li span{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; background:var(--ink); color:var(--paper); font-size:12px; font-weight:700; }
-.match-visual{ position:relative; border-radius:28px; overflow:hidden; padding:54px 28px; min-height:420px; display:grid; place-items:center;
-  background:radial-gradient(120% 90% at 50% -10%, rgba(255,77,31,.22), transparent 60%), linear-gradient(180deg,#211d18,#14110d); box-shadow:0 36px 80px -44px rgba(0,0,0,.6); }
+.match-visual{ position:relative; padding:28px 0; min-height:380px; display:grid; place-items:center; }
+/* the one black module — for page rhythm + to make matching the hero feature */
+#match{ background:radial-gradient(120% 80% at 72% -12%, rgba(255,77,31,.18), transparent 55%), linear-gradient(180deg,#1b1712,#100e0a); }
+#match .eyebrow{ color:#c2bcae; }
+#match .section-title{ color:var(--paper); }
+#match .section-sub{ color:#cbc6ba; }
+#match .match-steps li{ color:#e9e5db; }
+#match .match-steps li span{ background:var(--paper); color:var(--ink); }
 .slam{ width:100%; max-width:320px; display:flex; flex-direction:column; align-items:center; text-align:center; }
 .slam-avatars{ position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
 .av{ width:80px; height:80px; display:grid; place-items:center; border-radius:50%; font-family:var(--font-display); font-weight:700; font-size:21px; color:#fff; border:3px solid var(--paper); box-shadow:0 12px 30px rgba(0,0,0,.4); animation:avPop 4.4s ease-out infinite; }
@@ -369,7 +375,7 @@ footer{ padding:74px 0 48px; }
     <div class="foot-col"><h5>City</h5><a href="#">Amsterdam</a><a href="#">Sources</a><a href="#">This weekend</a><a href="#">Request a city</a></div>
     <div class="foot-col"><h5>Social</h5><a href="#">Instagram</a><a href="#">Threads</a><a href="#">X / Twitter</a></div>
   </div>
-  <div class="foot-bottom"><div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.8</span></div><div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div></div>
+  <div class="foot-bottom"><div class="made">Made in Amsterdam · © 2026 WKNDR · <span class="mono">v1.9</span></div><div class="legal"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div></div>
 </div></footer>
 
 <script>
@@ -430,10 +436,22 @@ function buildCard(p){
   </article>`;
 }
 
+/* quieter card for the "what's on" gallery — one pill + title, nothing else */
+function buildCardSimple(p){
+  const sig=signal(p);
+  const bg=p.img?` style="background-image:url(${p.img})"`:'';
+  const posterCls=p.img?'':` poster poster--${p.cat}`;
+  return `<article class="card${posterCls}"${bg}>
+    <div class="card-scrim"></div>
+    ${sig?`<div class="card-top"><span class="card-signal card-signal--${sig.tone}${sig.glow?' card-signal--glow':''}">${sig.text}</span></div>`:''}
+    <div class="card-body"><h2 class="card-title">${p.t}</h2></div>
+  </article>`;
+}
+
 /* ===== interactive swipe deck (real physics, vanilla) ===== */
 const deck=document.getElementById('deck'), hint=document.getElementById('deckHint');
 let queue=PICKS.slice(0,7);
-const BASE=[{s:1,y:0},{s:0.95,y:14},{s:0.90,y:28}];
+const BASE=[{s:1,y:0},{s:0.96,y:-10},{s:0.92,y:-20}];
 const TILT=[-1.6,2.0,-3.0];
 function deckHTML(p,i){
   const overlays = i===0 ? `<div class="swipe-tint red"></div><div class="swipe-tint green"></div>
@@ -501,8 +519,7 @@ const bentoOrder=['fka','jbn','noord','zaan','pllek','sun','eye'];
 const byId=id=>PICKS.find(p=>p.id===id);
 document.getElementById('bento').innerHTML=bentoOrder.map((id,i)=>{
   const cls=i===0?'feat':(i===3||i===4?'tall':'');
-  // reuse buildCard but add the size class to the .card element
-  return buildCard(byId(id)).replace('class="card', `class="card ${cls}`);
+  return buildCardSimple(byId(id)).replace('class="card', `class="card ${cls}`);
 }).join('');
 
 /* ===== D — ranked list (real rows) ===== */

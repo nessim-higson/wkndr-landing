@@ -7,6 +7,15 @@ The current version lives in [`VERSION`](VERSION), is shown in the page footer, 
 
 ---
 
+## v1.9 — 2026-06-17 — quieter gallery, fixed deck stack, black match module
+- **"What's on" cards less busy** — the gallery now uses a stripped card (one signal pill +
+  title only; no when-stamp/temp/＋). The full app card stays on the interactive hero deck.
+- **Fixed the swipe-deck weirdness** under the buttons — back cards were translated *down*,
+  peeking below the front card into the dock; flipped them to peek *up* so the bottom edge is
+  clean (verified: back-card bottoms now sit above the front, 17px clear of the buttons).
+- **Match section is now a full-bleed black module** — page rhythm/differentiation, and it
+  frames matching as the hero feature.
+
 ## v1.8 — 2026-06-17 — matching becomes the story; cards match the app
 - **Added a prominent Match section** — WKNDR's social hook. Reproduces the app's signature
   "It's a match" slam (You + partner avatars, sparkle, the shared pick card "you both want to
